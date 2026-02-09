@@ -29,14 +29,15 @@ class OwnersController extends Controller
 
         $e_all = Owner::all();
         $q_get = DB::table('owners')->select('name', 'created_at')->get();
-        $q_first = DB::table('owners')->select('name')->first();
-        $c_test = collect([
-            'name' => 'てすと'
-        ]);
+        // $q_first = DB::table('owners')->select('name')->first();
+        // $c_test = collect([
+        //     'name' => 'てすと'
+        // ]);
 
-        var_dump($q_first);
-        dd($e_all, $q_get, $q_first, $c_test);
+        // var_dump($q_first);
+        // dd($e_all, $q_get, $q_first, $c_test);
 
+        return view('admin.owners.index', compact('e_all', 'q_get'));
     }
 
     public function create()
