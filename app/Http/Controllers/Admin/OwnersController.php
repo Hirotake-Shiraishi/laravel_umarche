@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Owner; //エロクアント Eloquent
 use Illuminate\Support\Facades\DB; //クエリビルダ QueryBilder
 
+use Carbon\Carbon;
+
 class OwnersController extends Controller
 {
     public function __construct()
@@ -18,6 +20,13 @@ class OwnersController extends Controller
 
     public function index()
     {
+        $date_now = Carbon::now();
+        $date_parse = Carbon::parse(now());
+
+        echo $date_now, '<br>' ;
+        echo $date_parse, '<br>';
+        echo $date_now->year, '<br>' ;
+
         $e_all = Owner::all();
         $q_get = DB::table('owners')->select('name', 'created_at')->get();
         $q_first = DB::table('owners')->select('name')->first();
