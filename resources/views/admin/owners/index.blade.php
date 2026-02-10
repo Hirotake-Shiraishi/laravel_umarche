@@ -44,6 +44,9 @@
                                             <th
                                                 class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100 rounded-tr rounded-br">
                                             </th>
+                                            <th
+                                                class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100 rounded-tr rounded-br">
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -57,6 +60,15 @@
                                                         onclick="location.href='{{ route('admin.owners.edit', ['owner' => $owner->id]) }}'"
                                                         class="text-white bg-indigo-400 border-0 py-2 px-4 focus:outline-none hover:bg-indigo-500 rounded">編集</button>
                                                 </td>
+                                                <form id="delete_{{$owner->id}}" method="post"
+                                                    action="{{ route('admin.owners.destroy', ['owner' => $owner->id]) }}">
+                                                    @csrf
+                                                    @method('delete')
+                                                    <td class="px-4 py-3">
+                                                        <a href="#" data-id="{{ $owner->id }}" onclick="deletePost(this)"
+                                                            class="text-white bg-red-400 border-0 py-2 px-4 focus:outline-none hover:bg-red-500 rounded">削除</a>
+                                                    </td>
+                                                </form>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -68,4 +80,12 @@
             </div>
         </div>
     </div>
+    <script>
+        function deletePost(e) {
+            'use strict';
+            if (confirm('本当に削除してもいいですか?')) {
+                document.getElementById('delete_' + e.dataset.id).submit();
+            }
+        }
+    </script>
 </x-app-layout>
