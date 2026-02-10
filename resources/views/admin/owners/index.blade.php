@@ -23,7 +23,7 @@
                     <section class="text-gray-600 body-font">
                         <div class="container px-5 mx-auto">
                             {{-- トースト・フラッシュメッセージの表示 --}}
-                            <x-flash-message status="info" />
+                            <x-flash-message status="session('status')" />
                             <div class="lg:w-2/3 w-full mx-auto overflow-auto">
                                 <div class="flex justify-end mb-4">
                                     <button onclick="location.href='{{ route('admin.owners.create') }}'"
