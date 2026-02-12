@@ -10,10 +10,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use PhpParser\Node\Stmt\TryCatch;
 
-// Throwableインターフェイスの読み込み
-use Throwable;
-// Logファサードの読み込み
-use Illuminate\Support\Facades\Log;
+use Throwable; // Throwableインターフェイスの読み込み
+use Illuminate\Support\Facades\Log; // Logファサードの読み込み
+use App\Models\Shop; // Shopモデルの読み込み
 
 class OwnersController extends Controller
 {
@@ -67,21 +66,39 @@ class OwnersController extends Controller
         // Throwable（PHP7以降の機能）
         // ・use文でインポート、または、頭に\をつけることで使用可能。
         try{
+            // トランザクションは、引数で無名関数(クロージャー)を受け取る。
+            // フォームで入力されて渡ってきた値 $request をクロージャーに渡すには、
+            // use($request) を記載することで、クロージャー内で、$request 使用可能となる。
+            DB::transaction(function () use($request) {
+
+                // Ownerの登録処理をトランザクション内に移設。
+                // 変数として設定することで、クラスのインスタンス化
+                $owner = Owner::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                ]);
+
+                // Shopの登録処理
+                Shop::create([
+                    'owner_id' => $owner->id,
+                    'name' => '店名を入力してください',
+                    'information' => '',
+                    'filename' => '',
+                    'is_selling' => true
+                ]);
+
+            // 第二引数:トランザクションを再試行する回数
+            }, 2);
 
         } catch (Throwable $e) {
             Log::error($e);
             throw $e;
         }
 
-        Owner::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
         return redirect()
             ->route('admin.owners.index')
-            ->with(['message' => 'オーナーを登録しました', 'status' => 'alert']);
+            ->with(['message' => 'オーナーを登録しました', 'status' => 'info']);
     }
 
 
