@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use App\Models\Owner; //エロクアント Eloquent
 use Illuminate\Support\Facades\DB; //クエリビルダ QueryBilder
-
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Hash;
+use PhpParser\Node\Stmt\TryCatch;
+
+// Throwableインターフェイスの読み込み
+use Throwable;
+// Logファサードの読み込み
+use Illuminate\Support\Facades\Log;
 
 class OwnersController extends Controller
 {
@@ -59,6 +62,16 @@ class OwnersController extends Controller
             'email' => 'required|string|email|max:255|unique:owners',
             'password' => 'required|string|confirmed|min:8',
         ]);
+
+        // 例外をかけつつ、トランザクションをかける。
+        // Throwable（PHP7以降の機能）
+        // ・use文でインポート、または、頭に\をつけることで使用可能。
+        try{
+
+        } catch (Throwable $e) {
+            Log::error($e);
+            throw $e;
+        }
 
         Owner::create([
             'name' => $request->name,

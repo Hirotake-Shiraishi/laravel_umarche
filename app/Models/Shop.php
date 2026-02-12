@@ -12,6 +12,15 @@ class Shop extends Model
 {
     use HasFactory;
 
+    // $fillable　create/updateメソッドを使用の際、マスアサインメント対策として必須。
+    protected $fillable = [
+        'owner_id',
+        'name',
+        'information',
+        'filename',
+        'is_selling'
+    ];
+
     // ownerメソッドの作成
     // メソッド名は、リレーションするモデル名と対応させる。
     public function owner()
