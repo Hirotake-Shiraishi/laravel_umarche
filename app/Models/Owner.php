@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
+
+// 外部キーのあるShopモデルの読み込み
+use App\Models\Shop;
 
 class Owner extends Authenticatable
 {
@@ -41,4 +43,11 @@ class Owner extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // shopメソッドの作成
+    // メソッド名は、リレーションするモデル名と対応させる。
+    public function shop()
+    {
+        return $this->hasOne(Shop::class);
+    }
 }
