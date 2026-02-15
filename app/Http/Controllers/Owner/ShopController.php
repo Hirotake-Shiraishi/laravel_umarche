@@ -9,6 +9,7 @@ use App\Models\Shop;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 use App\Http\Requests\UploadImageRequest;
+use App\Services\ImageService;
 
 class ShopController extends Controller
 {
@@ -61,19 +62,21 @@ class ShopController extends Controller
         $imageFile = $request->image; //一時保存
 
         if (!is_null($imageFile) && $imageFile->isValid()) {
-            // Storage::putFile('public/shops', $imageFile); //リサイズなしの場合
+            $fileNameToStore = ImageService::upload($imageFile, 'shops');
 
-            $fileName = uniqid(rand() . '_'); //726829743_6990d02b29725
-            $extension = $imageFile->extension(); //jpg
-            $fileNameToStore = $fileName . '.' . $extension; //726829743_6990d02b29725.jpg
+            // // Storage::putFile('public/shops', $imageFile); //リサイズなしの場合
 
-            // dd($fileName, $extension, $fileNameToStore);
+            // $fileName = uniqid(rand() . '_'); //726829743_6990d02b29725
+            // $extension = $imageFile->extension(); //jpg
+            // $fileNameToStore = $fileName . '.' . $extension; //726829743_6990d02b29725.jpg
 
-            $resizedImage = Image::make($imageFile)->resize(1920, 1080)->encode();
+            // // dd($fileName, $extension, $fileNameToStore);
 
-            // dd($imageFile, $resizedImage); //型は違うことがわかる
+            // $resizedImage = Image::make($imageFile)->resize(1920, 1080)->encode();
 
-            Storage::put('public/shops/' . $fileNameToStore, $resizedImage);
+            // // dd($imageFile, $resizedImage); //型は違うことがわかる
+
+            // Storage::put('public/shops/' . $fileNameToStore, $resizedImage);
         }
 
         return redirect()->route('owner.shops.index')
