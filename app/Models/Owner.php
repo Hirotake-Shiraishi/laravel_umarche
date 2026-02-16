@@ -6,9 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
-// 外部キーのあるShopモデルの読み込み
-use App\Models\Shop;
+use App\Models\Shop; //外部キーのあるShopモデルの読み込み
+use App\Models\Image;
 
 class Owner extends Authenticatable
 {
@@ -49,5 +48,11 @@ class Owner extends Authenticatable
     public function shop()
     {
         return $this->hasOne(Shop::class);
+    }
+
+    public function image()
+    {
+        // 一対多のリレーション
+        return $this->hasMany(Image::class);
     }
 }
