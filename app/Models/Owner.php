@@ -52,7 +52,7 @@ class Owner extends Authenticatable
 
     public function image()
     {
-        // 一対多のリレーション
+        // 一対多のリレーション 複数のimageクラスのインスタンスを持つ。
         return $this->hasMany(Image::class);
     }
 }
