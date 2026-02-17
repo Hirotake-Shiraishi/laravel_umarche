@@ -108,7 +108,7 @@ class ImageController extends Controller
             Storage::delete($filePath);
         }
 
-        // DB Imagesテーブルのカラムを削除
+        // DB Imagesテーブルのレコードを削除
         Image::findOrFail($id)->delete();
 
         return redirect()->route('owner.images.index')
