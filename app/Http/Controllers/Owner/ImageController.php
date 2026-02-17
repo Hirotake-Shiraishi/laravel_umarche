@@ -8,6 +8,7 @@ use App\Models\Image;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UploadImageRequest;
 use App\Services\ImageService;
+use Illuminate\Support\Facades\Storage;
 
 class ImageController extends Controller
 {
@@ -18,7 +19,7 @@ class ImageController extends Controller
         // クロージャを使ったコントローラミドルウェア
         $this->middleware(function ($request, $next) {
 
-            $id = $request->route()->parameter('images'); //URLパラメータ imagesのid取得
+            $id = $request->route()->parameter('image'); //URLパラメータ imageのid取得
 
             if (!is_null($id)) {
 
@@ -99,6 +100,18 @@ class ImageController extends Controller
 
     public function destroy($id)
     {
-        //
+        $image = Image::findOrFail($id);
+        $filePath = 'public/products/' . $image->filename;
+
+        // storageの画像ファイルを削除
+        if (Storage::exists($filePath)) {
+            Storage::delete($filePath);
+        }
+
+        // DB Imagesテーブルのカラムを削除
+        Image::findOrFail($id)->delete();
+
+        return redirect()->route('owner.images.index')
+            ->with(['message' => '画像を削除しました。', 'status' => 'alert']);
     }
 }
