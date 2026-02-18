@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-// 親モデルのOwnerの読み込み
-use App\Models\Owner;
+use App\Models\Owner; //親モデル　Ownerの読み込み
+use App\Models\Product;
 
 class Shop extends Model
 {
@@ -26,5 +25,11 @@ class Shop extends Model
     public function owner()
     {
         return $this->belongsTo(Owner::class);
+    }
+
+    // 一対多のリレーション　親モデル -> 子モデル
+    public function product()
+    {
+        return $this->hasMany(Product::class);
     }
 }
