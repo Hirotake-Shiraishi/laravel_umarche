@@ -35,6 +35,11 @@ class ProductSeeder extends Seeder
                 'secondary_category_id' => 5,
                 'image1' => 5,
             ],
+            [
+                'shop_id' => 1,
+                'secondary_category_id' => 6,
+                'image1' => 6,
+            ],
 
         ]);
     }
