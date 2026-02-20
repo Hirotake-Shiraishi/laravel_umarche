@@ -17,7 +17,7 @@
     <div class="modal__overlay" tabindex="-1" data-micromodal-close>
         <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="{{ $modal }}-title">
             <header class="modal__header">
-                <h2 class="text-xl text-gray-700" id="{ $modal }-title">
+                <h2 class="text-xl text-gray-700" id="{{ $modal }}-title">
                     ファイルを選択してください
                 </h2>
                 <button type="button" class="modal__close" aria-label="Close modal" data-micromodal-close></button>
@@ -31,7 +31,9 @@
                                     data-id="{{ $name }}_{{ $image->id }}"
                                     data-file="{{ $image->filename }}"
                                     data-path="{{ asset('storage/products/') }}"
-                                    data-modal="{{ $modal }}"
+                                    {{-- data-modal="{{ $modal }}" は不要。--}}
+                                    {{-- MicroModalの仕様で data-micromodal-close が付いた要素をクリックすると、そのモーダルを閉じる --}}
+                                    data-micromodal-close
                                     src="{{ asset('storage/products/' . $image->filename) }}">
                                 <div class="text-gray-700">{{ $image->title }}</div>
                             </div>
