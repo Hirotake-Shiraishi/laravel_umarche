@@ -61,7 +61,7 @@
 
                 document.getElementById(imageName + '_thumbnail').src = imagePath + '/' + imageFile;
                 document.getElementById(imageName + '_hidden').value = imageId;
-                MicroModal.close(modal);
+                // MicroModal.close(modal);
             })
         })
     </script>
