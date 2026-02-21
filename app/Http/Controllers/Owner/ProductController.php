@@ -93,11 +93,11 @@ class ProductController extends Controller
             'is_selling' => 'required',
         ]);
 
-        try{
+        try {
             // トランザクションは、引数で無名関数(クロージャー)を受け取る。
             // フォームで入力されて渡ってきた値 $request をクロージャーに渡すには、
             // use($request) を記載することで、クロージャー内で、$request 使用可能となる。
-            DB::transaction(function () use($request) {
+            DB::transaction(function () use ($request) {
 
                 $product = Product::create([
                     'name' => $request->name,
@@ -120,9 +120,8 @@ class ProductController extends Controller
                     'quantity' => $request->quantity,
                 ]);
 
-            // 第二引数:トランザクションを再試行する回数
+                // 第二引数:トランザクションを再試行する回数
             }, 2);
-
         } catch (Throwable $e) {
             Log::error($e);
             throw $e;
@@ -134,15 +133,28 @@ class ProductController extends Controller
     }
 
 
-    public function show($id)
-    {
-        //
-    }
-
-
     public function edit($id)
     {
-        //
+        $product = Product::findOrFail($id);
+
+        $quantity = Stock::where('product_id', $product->id)
+            ->sum('quantity');
+
+        $shops = Shop::where('owner_id', Auth::id())
+        ->select('id', 'name')
+        ->get();
+
+        $images = Image::where('owner_id', Auth::id())
+            ->select('id', 'title', 'filename')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        // リレーション先の情報は、N+1問題を考慮して、withを使用する。
+        // 動的プロパティ（モデルに定義のメソッド名）を渡す。
+        $categories = PrimaryCategory::with('secondary')
+            ->get();
+
+        return view('owner.products.edit', compact('product', 'quantity', 'shops', 'images', 'categories'));
     }
 
 
