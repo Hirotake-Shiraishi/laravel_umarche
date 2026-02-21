@@ -42,6 +42,18 @@ class Product extends Model
     {
         return $this->belongsTo(Image::class, 'image1');
     }
+    public function imageSecond()
+    {
+        return $this->belongsTo(Image::class, 'image2');
+    }
+    public function imageThird()
+    {
+        return $this->belongsTo(Image::class, 'image3');
+    }
+    public function imageFourth()
+    {
+        return $this->belongsTo(Image::class, 'image4');
+    }
 
     // 一対多のリレーション　親モデル -> 子モデル
     public function stock()
