@@ -11,8 +11,11 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <!-- Validation Errors -->
                     <x-auth-validation-errors class="mb-4" :errors="$errors" />
+                    {{-- トースト・フラッシュメッセージの表示 --}}
+                    <x-flash-message status="session('status')" />
                     <form method="post" action="{{ route('owner.products.update', ['product' => $product->id]) }}">
                         @csrf
+                        @method('put')
                         <div class="-m-2">
                             {{-- 商品名 --}}
                             <div class="p-2 w-1/2 mx-auto">
