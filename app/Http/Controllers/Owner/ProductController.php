@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Throwable;
 use Illuminate\Support\Facades\Log;
 use App\Models\Stock;
+use App\Http\Requests\ProductRequest;
 
 class ProductController extends Controller
 {
@@ -75,24 +76,8 @@ class ProductController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        // dd($request);
-        $request->validate([
-            'name' => 'required|string|max:50',
-            'information' => 'required|string|max:1000',
-            'price' => 'required|integer',
-            'sort_order' => 'nullable|integer',
-            'quantity' => 'required|integer',
-            'shop_id' => 'required|exists:shops,id',
-            'category' => 'required|exists:secondary_categories,id',
-            'image1' => 'nullable|exists:images,id',
-            'image2' => 'nullable|exists:images,id',
-            'image3' => 'nullable|exists:images,id',
-            'image4' => 'nullable|exists:images,id',
-            'is_selling' => 'required',
-        ]);
-
         try {
             // トランザクションは、引数で無名関数(クロージャー)を受け取る。
             // フォームで入力されて渡ってきた値 $request をクロージャーに渡すには、
@@ -141,8 +126,8 @@ class ProductController extends Controller
             ->sum('quantity');
 
         $shops = Shop::where('owner_id', Auth::id())
-        ->select('id', 'name')
-        ->get();
+            ->select('id', 'name')
+            ->get();
 
         $images = Image::where('owner_id', Auth::id())
             ->select('id', 'title', 'filename')
@@ -158,9 +143,70 @@ class ProductController extends Controller
     }
 
 
-    public function update(Request $request, $id)
+    public function update(ProductRequest $request, $id)
     {
-        //
+        // update のときだけのバリデーション
+        $request->validate([
+            'current_quantity' => 'required|integer',
+        ]);
+
+        $product = Product::findOrFail($id);
+
+        $quantity = Stock::where('product_id', $product->id)
+            ->sum('quantity');
+
+        if ($request->current_quantity !== strval($quantity)) {
+            $id = $request->route()->parameter('product');
+            return redirect()->route('owner.products.edit', ['product' => $id])
+                ->with(['message' => '在庫数が変更されています。再度確認してください。', 'status' => 'alert']);
+        } else {
+            try {
+                // トランザクションは、引数で無名関数(クロージャー)を受け取る。
+                // フォームで入力されて渡ってきた値 $request をクロージャーに渡すには、
+                // use($request) を記載することで、クロージャー内で、$request 使用可能となる。
+                DB::transaction(function () use ($request, $product) {
+
+                    $product->name = $request->name;
+                    $product->information = $request->information;
+                    $product->price = $request->price;
+                    $product->sort_order = $request->sort_order;
+                    $product->shop_id = $request->shop_id;
+                    $product->secondary_category_id = $request->category;
+                    $product->image1 = $request->image1;
+                    $product->image2 = $request->image2;
+                    $product->image3 = $request->image3;
+                    $product->image4 = $request->image4;
+                    $product->is_selling = $request->is_selling;
+
+                    // ::create ではないので、saveとしてDBに保存する必要がある。
+                    $product->save();
+
+                    // 在庫数追加・削減の判定
+                    if ($request->type === '1') {
+                        $newQuantity = $request->quantity;
+                    }
+                    if ($request->type === '2') {
+                        $newQuantity = $request->quantity * -1;
+                    }
+
+                    // stockは、毎回新規作成。
+                    Stock::create([
+                        'product_id' => $product->id,
+                        'type' => $request->type,
+                        'quantity' => $newQuantity,
+                    ]);
+
+                    // 第二引数:トランザクションを再試行する回数
+                }, 2);
+            } catch (Throwable $e) {
+                Log::error($e);
+                throw $e;
+            }
+
+            return redirect()
+                ->route('owner.products.index')
+                ->with(['message' => '商品情報を更新しました', 'status' => 'info']);
+        }
     }
 
 
