@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Admin;
 use Illuminate\Database\Seeder;
+use App\Models\Stock;
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,5 +20,12 @@ class DatabaseSeeder extends Seeder
             // StockSeeder::class,
             UserSeeder::class,
         ]);
+
+        // productの中で、Shop/Image/Category の外部キーを設定しているため、
+        // Shop/Image/Category を先に実行しないとデータが存在しないため、エラーとなる。
+
+        // StockFactoryで、「'product_id' => Product::factory()」を呼び出しているので、
+        // Product::factory(100)->create(); は不要。
+        Stock::factory(100)->create();
     }
 }
