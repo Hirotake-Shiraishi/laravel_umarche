@@ -17,9 +17,34 @@
                                 <!-- Additional required wrapper -->
                                 <div class="swiper-wrapper">
                                     <!-- Slides -->
-                                    <div class="swiper-slide"><img src="{{ asset('storage/products/sample1.jpg') }}"></div>
-                                    <div class="swiper-slide">Slide 2</div>
-                                    <div class="swiper-slide">Slide 3</div>
+                                    <div class="swiper-slide">
+                                        @if ($product->imageFirst->filename !== null)
+                                            <img src="{{ asset('storage/products/' . $product->imageFirst->filename) }}">
+                                        @else
+                                            <img src="">
+                                        @endif
+                                    </div>
+                                    <div class="swiper-slide">
+                                        @if ($product->imageSecond->filename !== null)
+                                            <img src="{{ asset('storage/products/' . $product->imageSecond->filename) }}">
+                                        @else
+                                            <img src="">
+                                        @endif
+                                    </div>
+                                    <div class="swiper-slide">
+                                        @if ($product->imageThird->filename !== null)
+                                            <img src="{{ asset('storage/products/' . $product->imageThird->filename) }}">
+                                        @else
+                                            <img src="">
+                                        @endif
+                                    </div>
+                                    <div class="swiper-slide">
+                                        @if ($product->imageFourth->filename !== null)
+                                            <img src="{{ asset('storage/products/' . $product->imageFourth->filename) }}">
+                                        @else
+                                            <img src="">
+                                        @endif
+                                    </div>
                                 </div>
                                 <!-- If we need pagination -->
                                 <div class="swiper-pagination"></div>
