@@ -23,9 +23,9 @@ class CartController extends Controller
             $totalPrice += $product->price * $product->pivot->quantity;
         }
 
-        dd($products, $totalPrice);
+        // dd($products, $totalPrice);
 
-        return view('user.cart.index', compact('totalPrice'));
+        return view('user.cart', compact('products', 'totalPrice'));
     }
 
     public function add(Request $request)
