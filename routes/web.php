@@ -26,6 +26,8 @@ Route::prefix('cart')
             ->name('cart.index');
         Route::post('add', [CartController::class, 'add'])
             ->name('cart.add');
+        Route::post('delete/{item}', [CartController::class, 'delete'])
+            ->name('cart.delete');
 });
 
 // Route::get('/dashboard', function () {
