@@ -57,9 +57,47 @@ class CartController extends Controller
     public function delete($id)
     {
         Cart::where('product_id', $id)
-            ->where('use_id', Auth::id())
+            ->where('user_id', Auth::id())
             ->delete();
 
         return redirect()->route('user.cart.index');
+    }
+
+    public function checkout()
+    {
+        $user = User::findOrfail(Auth::id());
+        $products = $user->products;
+
+        $lineItems = [];
+        foreach($products as $product){
+            // 指摘#2 修正: price_data 形式で渡す（Stripev7以降で必須）
+            $lineItem = [
+                'price_data' => [
+                    'currency' => 'jpy',
+                    'unit_amount' => $product->price,
+                    'product_data' => [
+                        'name' => $product->name,
+                        'description' => $product->information,
+                    ],
+                ],
+                'quantity' => $product->pivot->quantity,
+            ];
+             // $lineItems配列に$lineItemを追加
+            array_push($lineItems, $lineItem);
+        }
+
+        // dd($lineItems);
+
+        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+
+        $session = \Stripe\Checkout\Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => $lineItems,
+            'mode' => 'payment',
+            'success_url' => route('user.cart.success'),
+            'cancel_url' => route('user.cart.cancel'),
+        ]);
+
+        return redirect($session->url);
     }
 }
