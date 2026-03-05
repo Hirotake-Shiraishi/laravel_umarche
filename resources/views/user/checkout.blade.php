@@ -13,8 +13,9 @@
             sessionId: '{{ $session->id }}'
 
         }).then(function(result) {
-            // 決済が失敗した場合は、カートページにリダイレクトする。
-            window.location.href = '{{ route('user.cart.index') }}';
+            // 決済が失敗した場合は、カートのキャンセルルートにリダイレクト
+            window.location.href = '{{ route('user.cart.cancel') }}';
+            // → cancelメソッドを実行し、カート内の商品を在庫に戻し、カートページにリダイレクトする。
         });
     }
 </script>
