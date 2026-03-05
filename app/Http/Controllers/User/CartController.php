@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Stock;
 
 class CartController extends Controller
 {
@@ -70,34 +71,59 @@ class CartController extends Controller
 
         $lineItems = [];
         foreach($products as $product){
-            // 指摘#2 修正: price_data 形式で渡す（Stripev7以降で必須）
-            $lineItem = [
-                'price_data' => [
-                    'currency' => 'jpy',
-                    'unit_amount' => $product->price,
-                    'product_data' => [
-                        'name' => $product->name,
-                        'description' => $product->information,
-                    ],
-                ],
-                'quantity' => $product->pivot->quantity,
-            ];
-             // $lineItems配列に$lineItemを追加
-            array_push($lineItems, $lineItem);
-        }
 
+            // Stockテーブルから、商品IDに紐づく在庫数を取得
+            $quantity = '';
+            $quantity = Stock::where('product_id', $product->id)->sum('quantity');
+
+            // カート内の数量が、在庫数より多い場合は、カートにリダイレクトする。
+            if($product->pivot->quantity > $quantity){
+                return redirect()->route('user.cart.index');
+
+            } else {
+                // 指摘#2 修正: price_data 形式で渡す（Stripev7以降で必須）
+                $lineItem = [
+                    'price_data' => [
+                        'currency' => 'jpy',
+                        'unit_amount' => $product->price,
+                        'product_data' => [
+                            'name' => $product->name,
+                            'description' => $product->information,
+                        ],
+                    ],
+                    'quantity' => $product->pivot->quantity,
+                ];
+                // $lineItems配列に$lineItemを追加
+                array_push($lineItems, $lineItem);
+            }
+        }
         // dd($lineItems);
 
+        // Stripeで決済する前に、在庫数を減らす。
+        foreach($products as $product){
+            Stock::create([
+                'product_id' => $product->id,
+                'type' => \Constant::PRODUCT_LIST['reduce'],
+                'quantity' => $product->pivot->quantity * -1
+            ]);
+        }
+
+        dd('テスト');
+
+        // setApiKeyで秘密鍵を、Stripe PHP SDKのAPIキーに設定
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
 
+        // \Stripe\Checkout\Session::createでセッションを作成
         $session = \Stripe\Checkout\Session::create([
-            'payment_method_types' => ['card'],
-            'line_items' => $lineItems,
-            'mode' => 'payment',
-            'success_url' => route('user.cart.success'),
-            'cancel_url' => route('user.cart.cancel'),
+            'payment_method_types' => ['card'], // カードのみに制限する場合
+            'line_items' => $lineItems, // 商品情報
+            'mode' => 'payment', // 決済モード 1回限りの決済
+            'success_url' => route('user.items.index'), // 成功時のリダイレクトURL
+            'cancel_url' => route('user.cart.index'), // キャンセル時のリダイレクトURL
         ]);
 
-        return redirect($session->url);
+        $publicKey = env('STRIPE_PUBLIC_KEY');
+
+        return view('user.checkout', compact('session', 'publicKey'));
     }
 }
