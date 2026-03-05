@@ -13,6 +13,24 @@ class ItemController extends Controller
     public function __construct()
     {
         $this->middleware('auth:users');
+
+        // クロージャを使ったコントローラミドルウェア
+        $this->middleware(function ($request, $next) {
+
+            $id = $request->route()->parameter('item'); //ルートパラメータのid {item}
+
+            if (!is_null($id)) {
+
+                // 表示可能な商品（在庫が1以上などの条件を満たす）の中で、指定された商品IDが存在するかどうか
+                $itemId = Product::availableItems()->where('products.id', $id)->exists();
+
+                // 指定された商品IDが存在しない場合は、404画面を表示
+                if (!$itemId) {
+                    abort(404);
+                }
+            }
+            return $next($request);
+        });
     }
 
     public function index()

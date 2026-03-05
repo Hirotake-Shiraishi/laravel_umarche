@@ -73,7 +73,7 @@ class Product extends Model
             ->withPivot(['id', 'quantity']);
     }
 
-    // ローカルスコープ：購入可能（在庫が1以上）の商品を取得
+    // ローカルスコープ：表示可能（在庫が1以上）の商品を取得
     public function scopeAvailableItems($query)
     {
         $stocks = DB::table('t_stocks')
