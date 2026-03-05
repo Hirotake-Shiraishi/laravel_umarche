@@ -108,7 +108,7 @@ class CartController extends Controller
             ]);
         }
 
-        dd('テスト');
+        // dd('Stripe決済前　在庫減算処理テスト');
 
         // setApiKeyで秘密鍵を、Stripe PHP SDKのAPIキーに設定
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
