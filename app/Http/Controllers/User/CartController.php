@@ -118,12 +118,22 @@ class CartController extends Controller
             'payment_method_types' => ['card'], // カードのみに制限する場合
             'line_items' => $lineItems, // 商品情報
             'mode' => 'payment', // 決済モード 1回限りの決済
-            'success_url' => route('user.items.index'), // 成功時のリダイレクトURL
+            'success_url' => route('user.cart.success'), // 成功時のリダイレクトURL
             'cancel_url' => route('user.cart.index'), // キャンセル時のリダイレクトURL
         ]);
 
         $publicKey = env('STRIPE_PUBLIC_KEY');
 
         return view('user.checkout', compact('session', 'publicKey'));
+    }
+
+
+    public function success()
+    {
+        // カート内の商品を削除
+        Cart::where('user_id', Auth::id())->delete();
+
+        // 商品一覧ページにリダイレクト
+        return redirect()->route('user.items.index');
     }
 }
