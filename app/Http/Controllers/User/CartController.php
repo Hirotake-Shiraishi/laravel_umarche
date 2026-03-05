@@ -119,7 +119,7 @@ class CartController extends Controller
             'line_items' => $lineItems, // 商品情報
             'mode' => 'payment', // 決済モード 1回限りの決済
             'success_url' => route('user.cart.success'), // 成功時のリダイレクトURL
-            'cancel_url' => route('user.cart.index'), // キャンセル時のリダイレクトURL
+            'cancel_url' => route('user.cart.cancel'), // キャンセル時のリダイレクトURL
         ]);
 
         $publicKey = env('STRIPE_PUBLIC_KEY');
@@ -133,7 +133,25 @@ class CartController extends Controller
         // カート内の商品を削除
         Cart::where('user_id', Auth::id())->delete();
 
-        // 商品一覧ページにリダイレクト
+        // 成功時は、商品一覧ページにリダイレクト
         return redirect()->route('user.items.index');
+    }
+
+
+    public function cancel()
+    {
+        $user = User::findOrfail(Auth::id());
+
+        // キャンセル時はカート内の商品を在庫に戻す
+        foreach($user->products as $product){
+            Stock::create([
+                'product_id' => $product->id,
+                'type' => \Constant::PRODUCT_LIST['add'],
+                'quantity' => $product->pivot->quantity
+            ]);
+        }
+
+        // キャンセル時は、カートページにリダイレクト
+        return redirect()->route('user.cart.index');
     }
 }
