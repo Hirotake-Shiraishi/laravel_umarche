@@ -232,7 +232,7 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'interventionImage' => Intervention\Image\Facades\Image::class,
-        'Constant' => App\Constnts\Common::class,
+        'Constant' => App\Constants\Common::class,
     ],
 
 ];
