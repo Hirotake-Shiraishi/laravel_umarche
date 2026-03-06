@@ -39,7 +39,7 @@ class ItemController extends Controller
         // ローカルスコープに、クエリを定義
         $products = Product::availableItems() // 表示可能な商品
             ->sortOrder($request->sort) // 並び順
-            ->get();
+            ->paginate($request->pagination); // ページネーション
 
         return view('user.index', compact('products'));
     }
