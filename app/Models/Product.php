@@ -135,4 +135,29 @@ class Product extends Model
             return $query;
         }
     }
+
+    /**
+     * キーワード検索スコープ（指摘#7 修正済み）
+     * 【指摘】else で return; だと null を返しメソッドチェーンが切れる。
+     * return $query; に修正。
+     */
+    public function scopeSearchKeyword($query, $keyword)
+    {
+        if (!is_null($keyword)) {
+            //全角スペースを半角スペースに変換
+            $spaceConvert = mb_convert_kana($keyword, 's');
+
+            //空白で区切って配列にする
+            $keywords = preg_split('/[\s]+/', $spaceConvert, -1, PREG_SPLIT_NO_EMPTY);
+
+            //配列の要素を１つずつ取り出して、where句のAND検索で検索
+            foreach ($keywords as $word) {
+                $query->where('products.name', 'like', '%' . $word . '%');
+            }
+
+            return $query;
+        } else {
+            return $query;  // 修正: return; → return $query;
+        }
+    }
 }
