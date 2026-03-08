@@ -96,7 +96,11 @@ class Product extends Model
                 ,'image1.filename as filename');
     }
 
-    // ローカルスコープ：並び順を指定
+    /**
+     * ソート順を適用するスコープ（指摘#7 修正済み）
+     * 【指摘】想定外の $sortOrder が渡された場合、関数末尾で return がなく
+     * 暗黙的に null を返しチェーンが切れてエラーになる。末尾に return $query; を追加。
+     */
     public function scopeSortOrder($query, $sortOrder)
     {
         if($sortOrder === null || $sortOrder === \Constant::SORT_ORDER['recommend']){
@@ -113,6 +117,22 @@ class Product extends Model
         }
         if($sortOrder === \Constant::SORT_ORDER['older']){
             return $query->orderBy('products.created_at', 'asc') ;
+        }
+
+        return $query;
+    }
+
+    /**
+     * カテゴリで絞り込むスコープ（指摘#7 修正済み）
+     * 【指摘】else で return; だと null を返しメソッドチェーンが切れる。
+     * return $query; に修正し、条件に合致しない場合もクエリを返す。
+     */
+    public function scopeSelectCategory($query, $categoryId)
+    {
+        if($categoryId != '0'){
+            return $query->where('secondary_category_id', $categoryId);
+        } else {
+            return $query;
         }
     }
 }

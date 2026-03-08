@@ -37,13 +37,14 @@ class ItemController extends Controller
     // ビューからのリクエストを受け取るために、Request $requestを引数に追加
     public function index(Request $request)
     {
-        dd($request);
+        // dd($request);
 
         $categories = PrimaryCategory::with('secondary')
             ->get();
 
         // ローカルスコープに、クエリを定義
         $products = Product::availableItems() // 表示可能な商品
+            ->selectCategory($request->category ?? '0') // カテゴリー
             ->sortOrder($request->sort) // 並び順
             ->paginate($request->pagination ?? '20'); // ページネーション
 

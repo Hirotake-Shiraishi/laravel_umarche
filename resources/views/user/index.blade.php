@@ -11,7 +11,7 @@
                         @foreach ($categories as $category)
                             <optgroup label="{{ $category->name }}">
                                 @foreach ($category->secondary as $secondary)
-                                    <option value="{{ $secondary->id }}">
+                                    <option value="{{ $secondary->id }}" @if(\Request::get('category') == $secondary->id) selected @endif>
                                         {{ $secondary->name }}
                                     </option>
                                 @endforeach
