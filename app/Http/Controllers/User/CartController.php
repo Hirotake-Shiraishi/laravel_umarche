@@ -8,6 +8,9 @@ use App\Models\Cart;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Stock;
+use App\Services\CartService;
+use App\Jobs\SendThanksMail;
+use App\Jobs\SendOrderedMail;
 
 class CartController extends Controller
 {
@@ -28,6 +31,7 @@ class CartController extends Controller
 
         return view('user.cart', compact('products', 'totalPrice'));
     }
+
 
     public function add(Request $request)
     {
@@ -55,6 +59,7 @@ class CartController extends Controller
         return redirect()->route('user.cart.index');
     }
 
+
     public function delete($id)
     {
         Cart::where('product_id', $id)
@@ -63,6 +68,7 @@ class CartController extends Controller
 
         return redirect()->route('user.cart.index');
     }
+
 
     public function checkout()
     {
@@ -130,6 +136,30 @@ class CartController extends Controller
 
     public function success()
     {
+        ////
+        $items = Cart::where('user_id', Auth::id())->get(); //where句は最後にget()が必要
+
+        $products = CartService::getItemsInCart($items);
+
+        $user = User::findOrfail(Auth::id());
+
+        // 非同期でメールを送信
+        // jobクラスに、引数として「商品情報」と「ユーザー情報」を渡す
+
+        // ユーザーに感謝メールを送信
+        SendThanksMail::dispatch($products, $user);
+
+        // オーナーに注文メールを送信
+        // 商品により、オーナーが異なるため、foreachでループ処理する。
+        // Mailtrap等のレート制限（1秒あたりのメール数）を避けるため、各ジョブに遅延を付与
+        foreach($products as $index => $product){ // インデックス番号も取得
+            SendOrderedMail::dispatch($product, $user)
+                ->delay(now()->addSeconds(5 + $index * 5));
+        }
+
+        // dd('ユーザーサンクスメール送信テスト');
+        ////
+
         // カート内の商品を削除
         Cart::where('user_id', Auth::id())->delete();
 
