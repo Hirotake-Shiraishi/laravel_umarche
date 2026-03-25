@@ -1,82 +1,184 @@
-## udemy Laravel講座
+# U Marche（ポートフォリオREADME）
 
-## ダウンロード方法
+**U Marche**は、ユーザーが商品を検索・購入でき、オーナーが商品/在庫/画像/店舗情報を管理できる、マルチログイン対応のEC風アプリケーションです（学習用プロジェクト）。
 
-git clone
+![U Marche](public/images/sample1.jpg)
+![U Marche](public/images/sample2.jpg)
 
-git clone https://github.com/aokitashipro/laravel_umarche.git
+## サービスURL（デモ）
 
-git clone ブランチを指定してダウンロードする場合
+- **デモURL**: `https://example.com`（※仮URL。後で差し替え予定）
 
-git clone -b ブランチ名 https://github.com/aokitashipro/laravel_umarche.git
+## 概要 / 開発した背景
 
-もしくはzipファイルでダウンロードしてください
+Laravelの典型的な「ECの購入体験」と「運用（商品・在庫・画像・店舗）」を1つのアプリで扱うことを目的に、以下を重点に実装/学習しました。
 
-## インストール方法
+- **購入体験の一連**（商品一覧→詳細→カート→決済→完了）
+- **運用者向け管理**（商品CRUD、在庫の増減、画像管理、店舗情報）
+- **権限分離**（User / Owner / Admin のマルチ認証）
+- **外部サービス連携**（Stripe決済、メール送信、画像リサイズ/保存）
 
-- cd laravel_umarche
-- composer install または composer update
-- npm install
-- npm run dev
+## 画面 / 機能
 
-.env.example をコピーして .env ファイルを作成
+### User（購入者）
 
-.envファイルの中の下記をご利用の環境に合わせて変更してください。
+- **商品一覧**: カテゴリ/キーワード検索、並び替え、表示件数切替、ページネーション
+  - 例: [`app/Http/Controllers/User/ItemController.php`](app/Http/Controllers/User/ItemController.php), [`resources/views/user/index.blade.php`](resources/views/user/index.blade.php)
+- **商品詳細**: 複数画像スライダー（Swiper）、在庫に応じた購入数量選択
+  - 例: [`resources/views/user/show.blade.php`](resources/views/user/show.blade.php)
+- **カート**: 追加/削除、小計計算
+  - 例: [`app/Http/Controllers/User/CartController.php`](app/Http/Controllers/User/CartController.php), [`resources/views/user/cart.blade.php`](resources/views/user/cart.blade.php)
+- **Stripe決済（Checkout）**: 決済成功/キャンセルに応じた遷移
+  - 例: [`resources/views/user/checkout.blade.php`](resources/views/user/checkout.blade.php)
+- **購入後メール**: 購入者へサンクスメール、各オーナーへ注文通知（キュー実行を想定）
+  - 例: [`app/Jobs/SendThanksMail.php`](app/Jobs/SendThanksMail.php), [`app/Jobs/SendOrderedMail.php`](app/Jobs/SendOrderedMail.php)
 
-- DB_CONNECTION=mysql
-- DB_HOST=127.0.0.1
-- DB_PORT=3306
-- DB_DATABASE=laravel_umarche
-- DB_USERNAME=umarche
-- DB_PASSWORD=password123
+### Owner（出品者/店舗運用者）
 
-XAMPP/MAMPまたは他の開発環境でDBを起動した後に
+- **店舗情報管理**: 店舗名/説明/販売ステータス、店舗画像アップロード
+  - 例: [`app/Http/Controllers/Owner/ShopController.php`](app/Http/Controllers/Owner/ShopController.php)
+- **画像管理**: 商品画像の複数アップロード、商品で利用中の画像は参照解除してから削除
+  - 例: [`app/Http/Controllers/Owner/ImageController.php`](app/Http/Controllers/Owner/ImageController.php)
+- **商品管理**: 商品CRUD、カテゴリ設定、複数画像紐付け、販売中/停止中
+  - 例: [`app/Http/Controllers/Owner/ProductController.php`](app/Http/Controllers/Owner/ProductController.php)
+- **在庫管理**: 在庫は履歴（増減レコード）として保持し、集計して現在庫を算出
+  - 例: [`app/Models/Stock.php`](app/Models/Stock.php), [`app/Models/Product.php`](app/Models/Product.php)
 
-php artisan migrate:fresh --seed
+### Admin（管理者）
 
-と実行してください。(データベーステーブルとダミーデータが追加されればOK)
+- **オーナー管理**: 一覧/作成/編集/削除
+  - 例: [`app/Http/Controllers/Admin/OwnersController.php`](app/Http/Controllers/Admin/OwnersController.php), [`routes/admin.php`](routes/admin.php)
+- **期限切れオーナー**: ソフトデリート済みの一覧/物理削除
 
-最後に
-php artisan key:generate
-と入力してキーを生成後、
+## 使用技術
 
-php artisan serve
-で簡易サーバーを立ち上げ、表示確認してください。
+### Backend
 
+- **PHP**: `^7.3|^8.0`（`composer.json`）
+- **Laravel**: `^8.12`（`composer.json`）
+- **認証**: Laravel Breeze（`laravel/breeze`）
+- **決済**: Stripe（`stripe/stripe-php`）
+- **画像処理**: Intervention Image（`intervention/image`）
+- **メール/キュー**: Job + Queue（`ShouldQueue`を利用）
 
-## インストール後の実施事項
+### Frontend / UI
 
-画像のダミーデータは
-public/imagesフォルダ内に
-sample1.jpg 〜 sample6.jpg として
-保存しています。
+- **Tailwind CSS**: `^2.2.19`
+- **Alpine.js**: `^2.7.3`
+- **Swiper**: `^6.7.0`
+- **MicroModal**: `^0.6.1`
+- **ビルド**: Laravel Mix（`laravel-mix`）
 
-php artisan storage:link で
-storageフォルダにリンク後、
+### DB
 
-storage/app/public/productsフォルダ内に
-保存すると表示されます。
-(productsフォルダがない場合は作成してください。)
+- **MySQL**（`.env.example` / 既存READMEの想定）
 
-ショップの画像も表示する場合は、
-storage/app/public/shopsフォルダを作成し
-画像を保存してください。
+## 設計のポイント（ポートフォリオとして見せたい点）
 
-## section7の補足
+- **マルチ認証（User/Owner/Admin）**: ガードを分けて、URLプレフィックスとルーティングも分離
+  - 例: [`config/auth.php`](config/auth.php), [`app/Providers/RouteServiceProvider.php`](app/Providers/RouteServiceProvider.php)
+- **在庫の扱い**: 在庫を“現在値”ではなく“増減履歴”として持ち、集計で現在庫を出す（監査・履歴に強い）
+  - 例: `t_stocks`（[`app/Models/Stock.php`](app/Models/Stock.php)）
+- **購入フローの整合**: 決済前に在庫を引き当て、キャンセル時は戻す（購入処理の不整合を減らす）
+  - 例: [`app/Http/Controllers/User/CartController.php`](app/Http/Controllers/User/CartController.php)
+- **オーナー所有チェック**: URL直叩き対策として、編集系アクションで「ログインオーナーの所有物か」を確認
+  - 例: [`app/Http/Controllers/Owner/ProductController.php`](app/Http/Controllers/Owner/ProductController.php), [`app/Http/Controllers/Owner/ImageController.php`](app/Http/Controllers/Owner/ImageController.php)
+- **画像アップロードの一元化**: 画像のリサイズ・保存処理をサービスに集約
+  - 例: [`app/Services/ImageService.php`](app/Services/ImageService.php)
 
-決済のテストとしてstripeを利用しています。
-必要な場合は .env にstripeの情報を追記してください。
-(講座内で解説しています)
+## ER図（概略）
 
-## section8の補足
+```mermaid
+erDiagram
+  USERS ||--o{ CARTS : has
+  PRODUCTS ||--o{ CARTS : contains
+  OWNERS ||--|| SHOPS : owns
+  SHOPS ||--o{ PRODUCTS : sells
+  OWNERS ||--o{ IMAGES : uploads
+  PRODUCTS ||--o{ T_STOCKS : stockEvents
 
-メールのテストとしてmailtrapを利用しています。
-必要な場合は .env にmailtrapの情報を追記してください。
-(講座内で解説しています)
+  USERS {
+    bigint id
+    string name
+    string email
+  }
+  OWNERS {
+    bigint id
+    string name
+    string email
+    datetime deleted_at
+  }
+  ADMINS {
+    bigint id
+    string name
+    string email
+  }
+  SHOPS {
+    bigint id
+    bigint owner_id
+    string name
+    string filename
+    bool is_selling
+  }
+  PRODUCTS {
+    bigint id
+    bigint shop_id
+    string name
+    int price
+    bool is_selling
+    int image1
+    int image2
+    int image3
+    int image4
+  }
+  IMAGES {
+    bigint id
+    bigint owner_id
+    string filename
+  }
+  CARTS {
+    bigint id
+    bigint user_id
+    bigint product_id
+    int quantity
+  }
+  T_STOCKS {
+    bigint id
+    bigint product_id
+    int type
+    int quantity
+  }
+```
 
-メール処理には時間がかかるので、
-キューを使用しています。
+## インフラ構成（概略）
 
-必要な場合は php artisan queue:workで
-ワーカーを立ち上げて動作確認するようにしてください。
-(講座内で解説しています)
+```mermaid
+flowchart LR
+  Browser[Browser]
+  App[LaravelApp]
+  DB[(MySQL)]
+  Stripe[Stripe]
+  Mail[MailProvider]
+  Queue[QueueWorker]
+  Storage[(Storage)]
+
+  Browser -->|HTTP| App
+  App -->|ReadWrite| DB
+  App -->|CheckoutSession| Stripe
+  App -->|EnqueueJobs| Queue
+  Queue -->|SendMail| Mail
+  App -->|UploadImages| Storage
+```
+
+## ローカル起動（開発者向け）
+
+このリポジトリのセットアップ手順は既存のREADMEにまとまっています。
+
+- [`README.md`](README.md)
+
+## 今後の展望
+
+- **決済の堅牢化**: Webhookで決済確定を受け、在庫引当/注文確定をサーバー側で最終確定できるようにする
+- **注文データの永続化**: 「注文」テーブルを追加し、購入履歴/売上管理を実装
+- **キュー基盤の明確化**: `QUEUE_CONNECTION`を`database`/`redis`等にし、ワーカー運用を前提にした構成をREADMEへ明記
+- **UI改善**: デモでの体験を重視し、主要画面のスクリーンショット/GIFを追加
