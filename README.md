@@ -5,11 +5,15 @@
 <!-- ![U Marche](public/images/sample1.jpg)
 ![U Marche](public/images/sample2.jpg) -->
 
-## 公開用URL
+## デモ公開用URL
 
 - **User（購入者）用URL**: `https://hi-shiraishi.sakura.ne.jp/login`
 - **Owner（出品者/店舗運用者）用URL**: `https://hi-shiraishi.sakura.ne.jp/owner/login`
 - **Admin（アプリケーション管理者）用URL**: `https://hi-shiraishi.sakura.ne.jp/admin/login`
+
+※ 上記デモURLには ベーシック認証（HTTP Basic 認証）をかけています。
+
+ベーシック認証のユーザー名・パスワードは 定期的に変更 しているため、不明な場合は お手数ですがご連絡ください。
 
 ## テストアカウント
 
