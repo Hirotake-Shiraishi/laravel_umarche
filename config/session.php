@@ -119,17 +119,28 @@ return [
     |--------------------------------------------------------------------------
     | Session Cookie Name
     |--------------------------------------------------------------------------
-    |
     | Here you may change the name of the cookie used to identify a session
     | instance by ID. The name specified here will get used every time a
     | new session cookie is created by the framework for every driver.
     |
+    | ここでは、セッションインスタンスをIDで識別するために使用される
+    | クッキーの名前を変更できます。この名前は、フレームワークが
+    | ドライバごとに新しいセッションクッキーを作成するたびに使用されます。
     */
 
     'cookie' => env(
         'SESSION_COOKIE',
         Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
     ),
+
+    'cookie_owner' => env(
+        'SESSION_COOKIE_OWNER',
+        Str::slug(env('APP_NAME', 'laravel'), '_').'_session_owner'),
+
+    'cookie_admin' => env(
+        'SESSION_COOKIE_ADMIN',
+        Str::slug(env('APP_NAME', 'laravel'), '_').'_session_admin'),
+
 
     /*
     |--------------------------------------------------------------------------
