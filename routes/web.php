@@ -1,22 +1,32 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ComponentTestController;
 use App\Http\Controllers\LifeCycleTestController;
 use App\Http\Controllers\User\ItemController;
 use App\Http\Controllers\User\CartController;
 
+/*
+ * 指摘#10: '/' が2つ定義されていた問題を解消。
+ * 認証済みなら商品一覧へ、未認証なら welcomeページを表示。
+ * 商品一覧は /items で提供し、デッドコードをなくす。
+ */
 Route::get('/', function () {
+    if (Auth::guard('users')->check()) {
+        return redirect()->route('user.items.index');
+    }
     return view('user.welcome');
 });
 
 Route::middleware('auth:users')
     ->group(function () {
-        Route::get('/', [ItemController::class, 'index'])
+        Route::get('items', [ItemController::class, 'index'])
             ->name('items.index');
         Route::get('show/{item}', [ItemController::class, 'show'])
             ->name('items.show');
     });
+
 
 // カートへのルート
 Route::prefix('cart')
