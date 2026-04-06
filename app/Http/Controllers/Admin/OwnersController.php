@@ -47,6 +47,7 @@ class OwnersController extends Controller
         return view('admin.owners.index', compact('owners'));
     }
 
+
     public function create()
     {
         return view('admin.owners.create');
@@ -116,12 +117,32 @@ class OwnersController extends Controller
     }
 
 
+    /**
+     * オーナー情報を更新
+     *
+     * （指摘#4 / 課題4: バリデーション強化）
+     *
+     * 修正前：update() にバリデーションがなく、name/email が空でも保存でき、メール形式・一意性チェックもなかった。
+     * また password が空のとき Hash::make('') で空ハッシュが保存されていた。
+     *
+     * 修正後: validate 追加（email は unique で自分自身の ID を除外）、パスワードは入力時のみ更新。
+     */
     public function update(Request $request, $id)
     {
+        // バリデーションをかける
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:owners,email,' . $id, // 自分自身の ID を除外
+            'password' => 'nullable|string|confirmed|min:8',
+        ]);
+
         $owner = Owner::findOrFail($id);
         $owner->name = $request->name;
         $owner->email = $request->email;
-        $owner->password = Hash::make($request->password);
+        // パスワードは入力があるときだけハッシュして保存（空のときは更新しない）
+        if($request->filled('password')){
+            $owner->password = Hash::make($request->password);
+        }
         $owner->save();
 
         return redirect()->route('admin.owners.index')
@@ -138,6 +159,7 @@ class OwnersController extends Controller
             ->with(['message' => 'オーナー情報を削除しました。', 'status' => 'alert']);
     }
 
+
     // 期限切れオーナー　一覧表示
     public function expiredOwnerIndex()
     {
@@ -147,6 +169,7 @@ class OwnersController extends Controller
             compact('expiredOwners')
         );
     }
+
 
     // 期限切れオーナー　物理削除
     public function expiredOwnerDestroy($id)
