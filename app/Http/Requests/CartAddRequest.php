@@ -25,4 +25,18 @@ class CartAddRequest extends FormRequest
             'product_id' => 'required|integer|exists:products,id',
         ];
     }
+
+    /**
+     * バリデーションエラーメッセージ（日本語）
+     */
+    public function messages()
+    {
+        return [
+            'quantity.required' => '数量を入力してください。',
+            'quantity.integer'  => '数量は整数で入力してください。',
+            'quantity.min'      => '数量は1以上を指定してください。',
+            'quantity.max'      => '数量は99以下を指定してください。',
+            'product_id.exists' => '指定された商品が存在しません。',
+        ];
+    }
 }
