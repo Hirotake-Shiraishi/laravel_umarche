@@ -11,6 +11,7 @@ use App\Models\Stock;
 use App\Services\CartService;
 use App\Jobs\SendThanksMail;
 use App\Jobs\SendOrderedMail;
+use App\Http\Requests\CartAddRequest; //add()のバリデーション用
 
 class CartController extends Controller
 {
@@ -33,7 +34,12 @@ class CartController extends Controller
     }
 
 
-    public function add(Request $request)
+    /**
+     * カートに商品を追加
+     * 【指摘#5 修正】quantity・product_id にバリデーションがなく、負の数・存在しないIDで孤立レコードが作れるようになってしまっていた。
+     * CartAddRequestを作成し、バリデーションを実施。
+     */
+    public function add(CartAddRequest $request)
     {
         // dd($request);
 
