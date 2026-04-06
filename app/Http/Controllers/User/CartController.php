@@ -76,6 +76,10 @@ class CartController extends Controller
     }
 
 
+    /**
+     * チェックアウト
+     * 【指摘#9】Apikey を env()ではなく、config('services.stripe.secret'|'public') で取得。（config:cache 後も動作させるため）
+     */
     public function checkout()
     {
         $user = User::findOrfail(Auth::id());
@@ -123,7 +127,7 @@ class CartController extends Controller
         // dd('Stripe決済前　在庫減算処理テスト');
 
         // setApiKeyで秘密鍵を、Stripe PHP SDKのAPIキーに設定
-        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
         // \Stripe\Checkout\Session::createでセッションを作成
         $session = \Stripe\Checkout\Session::create([
@@ -134,7 +138,7 @@ class CartController extends Controller
             'cancel_url' => route('user.cart.cancel'), // キャンセル時のリダイレクトURL
         ]);
 
-        $publicKey = env('STRIPE_PUBLIC_KEY');
+        $publicKey = config('services.stripe.public');
 
         return view('user.checkout', compact('session', 'publicKey'));
     }
