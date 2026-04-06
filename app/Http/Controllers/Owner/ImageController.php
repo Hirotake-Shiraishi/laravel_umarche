@@ -99,10 +99,17 @@ class ImageController extends Controller
     }
 
 
+    /**
+     * 画像削除
+     * （指摘#11）
+     * 【問題点①】Collection の空判定: if($imageInProducts) は空コレクションでも true になる。
+     * isNotEmpty() で正しく空判定するように修正。
+     * 【問題点②】末尾で Image::findOrFail($id)->delete() は二重クエリになる。
+     * 取得済みの $image を使うように修正。
+     */
     public function destroy($id)
     {
         $image = Image::findOrFail($id);
-        $filePath = 'public/products/' . $image->filename;
 
         // 削除する画像をProductで使っているかの確認
         $imageInProducts = Product::where('image1', $image->id)
@@ -111,8 +118,8 @@ class ImageController extends Controller
             ->orWhere('image4', $image->id)
             ->get();
 
-        // productで使っていたら
-        if($imageInProducts){
+        // 修正: if($imageInProducts) → isNotEmpty() で空コレクションを正しく判定
+        if($imageInProducts->isNotEmpty()){
             // eachメソッドを使って、１つずつ要素に処理をかける。
             // コールバック関数の中で、$image を使いたいので、useで $image を渡す。
             $imageInProducts->each(function($product) use($image){
@@ -136,13 +143,15 @@ class ImageController extends Controller
             });
         }
 
+        $filePath = 'public/products/' . $image->filename;
+
         // storageの画像ファイルを削除
         if (Storage::exists($filePath)) {
             Storage::delete($filePath);
         }
 
-        // DB Imagesテーブルのレコードを削除
-        Image::findOrFail($id)->delete();
+        // 修正: Image::findOrFail($id)->delete() は二重クエリのため、取得済みの $image を使用
+        $image->delete();
 
         return redirect()->route('owner.images.index')
             ->with(['message' => '画像を削除しました。', 'status' => 'alert']);
