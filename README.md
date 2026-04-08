@@ -19,9 +19,9 @@
 
 | ロール | メールアドレス | パスワード |
 |--------|----------------|------------|
-| **User（購入者）** | `test@test.com` | `password123` |
-| **Owner（出品者/店舗運用者）** | `test1@test1.com` | `password123` |
-| **Admin（アプリケーション管理者）** | `test@test.com` | `password123` |
+| **User（購入者）** | `user-a@test.com` | `password123` |
+| **Owner（出品者/店舗運用者）** | `admin@test.com` | `password123` |
+| **Admin（アプリケーション管理者）** | `owner-a@test.com` | `password123` |
 
 ※ User と Admin は別ガードのため、同じメールアドレスでもそれぞれのログイン画面から利用できます。
 
