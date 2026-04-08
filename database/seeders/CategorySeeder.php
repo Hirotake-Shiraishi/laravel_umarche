@@ -70,8 +70,6 @@ class CategorySeeder extends Seeder
                 'sort_order' => 9,
                 'primary_category_id' => 3
             ],
-
-
         ]);
     }
 }

@@ -18,64 +18,40 @@ class OwnerSeeder extends Seeder
     {
         DB::table('owners')->insert([
             [
-                'name' => 'test1',
-                'email' => 'test1@test.com',
+                'name' => 'オーナーA',
+                'email' => 'owner-a@test.com',
                 'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
+                'created_at' => '2021/01/01 11:11:11'
             ],
             [
-                'name' => 'test2',
-                'email' => 'test2@test.com',
+                'name' => 'オーナーB',
+                'email' => 'owner-b@test.com',
                 'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
+                'created_at' => '2021/01/01 11:11:11'
             ],
             [
-                'name' => 'test3',
-                'email' => 'test3@test.com',
+                'name' => 'オーナーC',
+                'email' => 'owner-c@test.com',
                 'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
+                'created_at' => '2021/01/01 11:11:11'
             ],
             [
-                'name' => 'test4',
-                'email' => 'test4@test.com',
+                'name' => 'オーナーD',
+                'email' => 'owner-d@test.com',
                 'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
+                'created_at' => '2021/01/01 11:11:11'
             ],
             [
-                'name' => 'test5',
-                'email' => 'test5@test.com',
+                'name' => 'オーナーE',
+                'email' => 'owner-e@test.com',
                 'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
+                'created_at' => '2021/01/01 11:11:11'
             ],
             [
-                'name' => 'test6',
-                'email' => 'test6@test.com',
+                'name' => 'オーナーF',
+                'email' => 'owner-f@test.com',
                 'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
-            ],
-            [
-                'name' => 'test7',
-                'email' => 'test7@test.com',
-                'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
-            ],
-            [
-                'name' => 'test8',
-                'email' => 'test8@test.com',
-                'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
-            ],
-            [
-                'name' => 'test9',
-                'email' => 'test9@test.com',
-                'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
-            ],
-            [
-                'name' => 'test10',
-                'email' => 'test10@test.com',
-                'password' => Hash::make('password123'),
-                'created_at' => '2026/02/09 11:11:11'
+                'created_at' => '2021/01/01 11:11:11'
             ],
         ]);
     }
