@@ -31,12 +31,13 @@ return [
     ],
 
     /*
-     * 指摘#9: コントローラーで env() を直接使うと、php artisan config:cache 実行後に
+     * コントローラーで env() を直接使うと、php artisan config:cache 実行後に
      * env() が null を返し本番で決済が動かなくなる。config() 経由で参照するためここに定義。
      */
     'stripe' => [
         'secret' => env('STRIPE_SECRET_KEY'),
         'public' => env('STRIPE_PUBLIC_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
 ];
