@@ -19,9 +19,7 @@ class CartController extends Controller
     public function index()
     {
         $user = User::findOrfail(Auth::id());
-
         $products = $user->products;
-
         $totalPrice = 0;
 
         foreach($products as $product){
@@ -36,21 +34,23 @@ class CartController extends Controller
 
 
     /**
-     * カートに商品を追加
-     * 【指摘#5 修正】quantity・product_id にバリデーションがなく、負の数・存在しないIDで孤立レコードが作れるようになってしまっていた。
-     * CartAddRequestを作成し、CartAddRequest で quantity: integer|min:1|max:99, product_id: exists:products,id のバリデーションを実施。
+     * カートに商品を追加する
+     *
+     * - 既に同一商品がカートに存在する場合は数量を加算する
+     * - 存在しない場合は新規作成する
+     *
+     * @param \App\Http\Requests\CartAddRequest $request バリデーション済みリクエスト
+     * @return \Illuminate\Http\RedirectResponse カート一覧画面へのリダイレクト
      */
     public function add(CartAddRequest $request)
     {
-        // dd($request);
-
-        // カートに商品があるか
-        // ユーザーIDが、ログインIDと同じか
+        // ログインユーザーIDで絞る → リクエストで送られてきた商品IDで絞る → 商品があれば取得、なければnull
         $itemInCart = Cart::where('user_id', Auth::id())
-            ->where('product_id', $request->product_id)->first();
+            ->where('product_id', $request->product_id)
+            ->first();
 
         if($itemInCart){
-            // あれば数量を追加
+            // あれば数量を加算
             $itemInCart->quantity += $request->quantity;
             $itemInCart->save();
         } else {
@@ -62,7 +62,6 @@ class CartController extends Controller
             ]);
         }
 
-        // dd('テスト');
         return redirect()->route('user.cart.index');
     }
 
@@ -93,7 +92,8 @@ class CartController extends Controller
         $lineItems = [];
         foreach($products as $product){
 
-            // 指摘#2 修正: price_data 形式で渡す（Stripev7以降で必須）
+            // Stripe Checkout に渡す行データ。
+            // price_data + product_data 形式で渡す（Stripev7以降で必須）
             $lineItem = [
                 'price_data' => [
                     'currency' => 'jpy',
@@ -123,86 +123,44 @@ class CartController extends Controller
         }
         // dd($lineItems);
 
-        // Stripe の公開鍵を取得。これをクライアントサイドで Stripe.js に渡して、決済ページを表示する。
+        // Stripe の公開鍵の取得。これをクライアントサイドで Stripe.js に渡して、決済ページを表示する。
         $publicKey = config('services.stripe.public');
 
 
-        // 【課題2】第1トランザクション: 在庫のロック・チェック・減算
-        // Stripe 失敗時の在庫戻しは後述の catch で行う。
         try {
-            DB::transaction(function () use ($products) {
-                // 【課題1】在庫チェックをトランザクション内で実施し、lockForUpdate() で悲観的ロックを取得。
-                // 修正前: トランザクション外で sum('quantity') のみ実行していたため、チェックと減算の間に他リクエストが割り込み在庫マイナスになる可能性があった。
-                // 修正後: SELECT ... FOR UPDATE により行をロックし、同一トランザクション内でチェック→減算まで行うことで Race Condition を防止。不足時は Exception でロールバック。
-                foreach ($products as $product) {
-
-                    $quantity = Stock::where('product_id', $product->id)
-                        ->lockForUpdate()
-                        ->sum('quantity');
-
-                    if ($product->pivot->quantity > $quantity) {
-                        throw new \Exception('在庫不足');
-                    }
-                }
-
-                // 【課題1】上記で全商品の在庫をロック・チェック済みのため、このタイミングで在庫減算を行っても他トランザクションは割り込めない。
-                foreach ($products as $product) {
-                    Stock::create([
-                        'product_id' => $product->id,
-                        'type' => \Constant::PRODUCT_LIST['reduce'],
-                        'quantity' => $product->pivot->quantity * -1
-                    ]);
-                }
-            });
-
-        } catch (\Throwable $e) {
-
-            // 【課題1】在庫不足で throw した場合は専用メッセージでカート一覧へリダイレクト
-            if ($e->getMessage() === '在庫不足') {
-                return redirect()->route('user.cart.index')
-                    ->with(['message' => '在庫不足です。', 'status' => 'alert']);
-            }
-
-            // 在庫不足以外（DBエラー等）はトランザクションがロールバック済みのため、在庫戻しは不要。
-            return redirect()->route('user.cart.index')
-                ->with(['message' => '決済の開始に失敗しました。', 'status' => 'alert']);
-        }
-
-
-        // 【課題2】第2トランザクション: Stripe 決済の呼び出し
-        // Stripeは、第1トランザクション完了後に、第1トランザクション外で呼び出す。（DB接続を占有したままHTTPを待たない）
-        // stripe 決済失敗時は、第1トランザクションで減算した在庫を戻す。
-        try {
-
             // setApiKeyで秘密鍵を、Stripe PHP SDKのAPIキーに設定
             \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
-            // \Stripe\Checkout\Session::createでセッションを作成
+            // Checkout\Session::create で Stripe が作成する checkout session に必要なパラメータを設定する。
             $session = \Stripe\Checkout\Session::create([
-                'payment_method_types' => ['card'], // カードのみに制限する場合
-                'line_items' => $lineItems, // 商品情報
-                'mode' => 'payment', // 決済モード 1回限りの決済
-                'success_url' => route('user.cart.success'), // 成功時のリダイレクトURL
-                'cancel_url' => route('user.cart.cancel'), // キャンセル時のリダイレクトURL
+
+                // カードのみに制限する場合
+                'payment_method_types' => ['card'],
+
+                // Stripe Checkout に渡す行データ。
+                'line_items' => $lineItems,
+
+                // 決済モード 1回限りの決済
+                'mode' => 'payment',
+
+                // Webhook で「この決済はユーザー ID ○○ のもの」と突き合わせるための任意文字列（公式もこの用途を想定）。
+                'client_reference_id' => (string) $user->id,
+
+                // 決済成功後にブラウザが戻るURL。{CHECKOUT_SESSION_ID} は Stripe側で実セッションIDに置換する。
+                'success_url' => route('user.cart.success', [], true) . '?session_id={CHECKOUT_SESSION_ID}',
+
+                // ユーザーが Stripe決済画面で「戻る」を押したときのURL。
+                'cancel_url' => route('user.cart.cancel', [], true),
             ]);
 
         } catch (\Throwable $e) {
 
-            // 【課題2】Stripe 失敗時: すでに減算した在庫を戻す（データ不整合を防ぐ）
-            DB::transaction(function () use ($products) {
-                foreach ($products as $product) {
-                    Stock::create([
-                        'product_id' => $product->id,
-                        'type' => \Constant::PRODUCT_LIST['add'],
-                        'quantity' => $product->pivot->quantity
-                    ]);
-                }
-            });
-
+            // APIキー不正エラー・ネットワークエラー・Stripe側エラー等のエラー処理
             return redirect()->route('user.cart.index')
                 ->with(['message' => '決済の開始に失敗しました。', 'status' => 'alert']);
         }
 
+        // checkout.blade で Stripe.redirectToCheckout({ sessionId }) を実行する。
         return view('user.checkout', compact('session', 'publicKey'));
     }
 
