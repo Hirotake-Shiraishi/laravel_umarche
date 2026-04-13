@@ -26,4 +26,13 @@ class Common
         'later' => self::ORDER_LATER,
         'older' => self::ORDER_OLDER
     ];
+
+    /** 注文ステータス（DB に保存する値。画面表示は Blade 側で日本語にマッピング） */
+    const ORDER_STATUS_PENDING = 'pending';
+    const ORDER_STATUS_SHIPPED = 'shipped';
+
+    const ORDER_STATUS_LIST = [
+        'pending' => self::ORDER_STATUS_PENDING,
+        'shipped' => self::ORDER_STATUS_SHIPPED,
+    ];
 }

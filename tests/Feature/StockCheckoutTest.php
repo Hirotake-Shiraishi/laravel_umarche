@@ -5,16 +5,14 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Stock;
-use App\Models\Cart;
-use App\Models\Owner;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * 課題1: 在庫管理・悲観的ロックの Feature テスト。
- * 評価資料「在庫1個の商品が表示される」「在庫不足時にリダイレクトされる」の2ケースを検証する。
+ * 在庫と商品一覧の Feature テスト。
+ * 在庫不足・Webhook 処理は StripeWebhookTest を参照。
  */
 class StockCheckoutTest extends TestCase
 {
@@ -85,47 +83,6 @@ class StockCheckoutTest extends TestCase
     }
 
     /**
-     * 課題1 検証: 在庫不足時にチェックアウトでカート一覧へリダイレクトされ、セッションに「在庫不足です。」が入ること。
-     * 修正内容: checkout() 内で lockForUpdate 取得後に在庫チェックし、不足時は Exception('在庫不足') で throw → catch でリダイレクトする挙動を確認する。
+     * Webhook 方式: checkout() は在庫を見ない。在庫不足の扱いは StripeWebhookTest で検証する。
      */
-    public function test_checkout_redirects_to_cart_index_when_insufficient_stock(): void
-    {
-        $this->seedItemListDependencies();
-
-        // 在庫1個の商品に対して、カートには2個入れた状態にする
-        $product = Product::create([
-            'shop_id' => 1,
-            'name' => '在庫1個の商品',
-            'information' => '説明',
-            'price' => 500,
-            'is_selling' => true,
-            'sort_order' => 1,
-            'secondary_category_id' => 1,
-            'image1' => 1,
-            'image2' => 1,
-            'image3' => 1,
-            'image4' => 1,
-        ]);
-
-        Stock::create([
-            'product_id' => $product->id,
-            'type' => 1,
-            'quantity' => 1,
-        ]);
-
-        $user = User::factory()->create();
-
-        Cart::create([
-            'user_id' => $user->id,
-            'product_id' => $product->id,
-            'quantity' => 2,
-        ]);
-
-        // チェックアウト実行 → 在庫不足でトランザクション内で throw され、cart.index へリダイレクトされることを検証
-        $response = $this->actingAs($user, 'users')->get(route('user.cart.checkout'));
-
-        $response->assertRedirect(route('user.cart.index'));
-        $response->assertSessionHas('message', '在庫不足です。');
-        $response->assertSessionHas('status', 'alert');
-    }
 }
