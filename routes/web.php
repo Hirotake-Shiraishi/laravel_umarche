@@ -6,11 +6,13 @@ use App\Http\Controllers\ComponentTestController;
 use App\Http\Controllers\LifeCycleTestController;
 use App\Http\Controllers\User\ItemController;
 use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\OrderController;
 
 /*
- * 指摘#10: '/' が2つ定義されていた問題を解消。
+ * ユーザー関連ルート
+ *
  * 認証済みなら商品一覧へ、未認証なら welcomeページを表示。
- * 商品一覧は /items で提供し、デッドコードをなくす。
+ * 商品一覧は /items で提供。
  */
 Route::get('/', function () {
     if (Auth::guard('users')->check()) {
@@ -28,7 +30,9 @@ Route::middleware('auth:users')
     });
 
 
-// カートへのルート
+/*
+ * カート
+ */
 Route::prefix('cart')
     ->middleware('auth:users')
     ->group(function () {
@@ -46,10 +50,24 @@ Route::prefix('cart')
             ->name('cart.cancel');
 });
 
+
+/*
+ * 注文履歴
+ *
+ * - RouteServiceProvider で as('user.') が付くため、ルート名は user.orders.index となる。
+ */
+Route::prefix('user')->middleware('auth:users')->group(function () {
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+});
+
 // Route::get('/dashboard', function () {
 //     return view('user.dashboard');
 // })->middleware(['auth:users'])->name('dashboard');
 
+/*
+ * コンポーネントテスト関連ルート
+ */
 Route::get('/component-test1', [ComponentTestController::class, 'showComponent1']);
 Route::get('/component-test2', [ComponentTestController::class, 'showComponent2']);
 Route::get('/servicecontainertest', [LifeCycleTestController::class, 'showServiceContainerTest']);
