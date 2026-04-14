@@ -7,6 +7,7 @@ use App\Jobs\SendThanksMail;
 use App\Jobs\SendOrderedMail;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Models\User;
@@ -136,12 +137,26 @@ class CheckoutWebhookFulfillmentService
                     ]);
                 }
 
+                // 注文ヘッダを作成
                 $order = Order::create([
                     'user_id' => $userId,
                     'stripe_session_id' => $stripeSessionId,
                     'total_price' => $totalPrice,
                     'status' => \Constant::ORDER_STATUS_PENDING,
                 ]);
+
+                // 注文明細を作成
+                //  - 明細の price は「購入時点の単価」のコピー。
+                //  - あとから商品マスタの価格が変わっても履歴は変わらない。
+                foreach ($items as $item) {
+                    $product = Product::findOrFail($item->product_id);
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'quantity' => $item->quantity,
+                        'price' => $product->price,
+                    ]);
+                }
 
                 // メール用の配列は CartService の getItemsInCart メソッドで取得する。
                 // 取得だけおこない、カート内の削除はトランザクション成功・コミット後に行う。
@@ -212,7 +227,10 @@ class CheckoutWebhookFulfillmentService
         $user = User::findOrFail($result['userId']);
         $productsForMail = $result['productsForMail'];
 
+        // 購入者へのサンクスメールを送信
         SendThanksMail::dispatch($productsForMail, $user);
+
+        // 各商品のオーナーへの注文通知メールを送信
         foreach ($productsForMail as $index => $product) {
             SendOrderedMail::dispatch($product, $user)
                 ->delay(now()->addSeconds(5 + $index * 5));
