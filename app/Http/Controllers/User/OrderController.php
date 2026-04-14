@@ -47,6 +47,9 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
+        // OrderPolicy::view を実行し、他人の注文なら 403 Forbidden を返す。
+        $this->authorize('view', $order);
+
         $order->load(['orderItems.product']);
 
         return view('user.orders.show', compact('order'));
