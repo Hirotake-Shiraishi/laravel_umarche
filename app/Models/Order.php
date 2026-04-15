@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Order（注文ヘッダ）モデル
+ */
 class Order extends Model
 {
     use HasFactory;
@@ -31,5 +34,16 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * この注文に含まれる明細行（1対多）
+     *
+     * hasMany: 「親（orders）に対して子（order_items）が複数」。
+     * 使い方例: $order->orderItems
+     */
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }

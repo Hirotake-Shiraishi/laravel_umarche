@@ -8,6 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Product;
 
+/**
+ * 一般ユーザー
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -27,6 +30,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+
     // 多対多のリレーション　正の関係
     public function products()
     {
@@ -35,5 +39,17 @@ class User extends Authenticatable
         // 中間テーブルのカラム取得。
         return $this->belongsToMany(Product::class, 'carts')
             ->withPivot(['id', 'quantity']);
+    }
+
+
+    /**
+     * このユーザーが行った注文一覧（1対多）
+     *
+     * hasMany: users.id が orders.user_id に対応。
+     * 使い方例: $user->orders()->latest()->paginate()
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

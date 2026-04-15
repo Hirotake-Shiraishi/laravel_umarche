@@ -73,7 +73,20 @@ class Product extends Model
             ->withPivot(['id', 'quantity']);
     }
 
-    // ローカルスコープ：表示可能（在庫が1以上）の商品を取得
+    /**
+     * この商品が注文明細に含まれた履歴（1対多・任意）
+     *
+     * オーナー画面や詳細画面で「どの注文に入っていたか」を辿るときに使用する。
+     */
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+
+    /**
+     * ローカルスコープ：表示可能（在庫が1以上）の商品を取得するスコープ
+     */
     public function scopeAvailableItems($query)
     {
         $stocks = DB::table('t_stocks')
@@ -96,10 +109,9 @@ class Product extends Model
                 ,'image1.filename as filename');
     }
 
+
     /**
-     * ソート順を適用するスコープ（指摘#7 修正済み）
-     * 【指摘】想定外の $sortOrder が渡された場合、関数末尾で return がなく
-     * 暗黙的に null を返しチェーンが切れてエラーになる。末尾に return $query; を追加。
+     * ソート順を適用するスコープ
      */
     public function scopeSortOrder($query, $sortOrder)
     {
@@ -122,10 +134,9 @@ class Product extends Model
         return $query;
     }
 
+
     /**
-     * カテゴリで絞り込むスコープ（指摘#7 修正済み）
-     * 【指摘】else で return; だと null を返しメソッドチェーンが切れる。
-     * return $query; に修正し、条件に合致しない場合もクエリを返す。
+     * カテゴリで絞り込むスコープ
      */
     public function scopeSelectCategory($query, $categoryId)
     {
@@ -136,10 +147,9 @@ class Product extends Model
         }
     }
 
+
     /**
-     * キーワード検索スコープ（指摘#7 修正済み）
-     * 【指摘】else で return; だと null を返しメソッドチェーンが切れる。
-     * return $query; に修正。
+     * キーワード検索スコープ
      */
     public function scopeSearchKeyword($query, $keyword)
     {
@@ -157,7 +167,7 @@ class Product extends Model
 
             return $query;
         } else {
-            return $query;  // 修正: return; → return $query;
+            return $query;
         }
     }
 }
