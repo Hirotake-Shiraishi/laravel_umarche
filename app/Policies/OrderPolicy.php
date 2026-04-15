@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Models\Owner;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -22,18 +23,6 @@ class OrderPolicy
     use HandlesAuthorization;
 
     /**
-     * Determine whether the user can view any models.
-     * ユーザーがすべてのモデルを一覧表示できるかどうかを判定する。
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function viewAny(User $user)
-    {
-        //
-    }
-
-    /**
      * Determine whether the user can view the model.
      * ユーザーが当該モデルを閲覧できるかどうかを判定する。
      *
@@ -48,66 +37,46 @@ class OrderPolicy
     }
 
     /**
-     * Determine whether the user can create models.
-     * ユーザーがモデルを新規作成できるかどうかを判定する。
+     * オーナー（owners ガード）が注文のステータスを更新できるか
      *
-     * @param  \App\Models\User  $user
+     * カートは複数店舗の商品が混在し得るため、1注文に「他店の商品」が含まれることがある。
+     * 明細がすべて自店の商品である注文だけ、ステータス更新を許可する。
+     * 自店と他店の商品が混在する注文は、一覧には出すが更新は不可にする。
+     * （誤って他店分までステータスを「発送済」に更新しないため）
+     *
+     * @param  \App\Models\Owner $owner ログイン中のオーナー
+     * @param  \App\Models\Order $order 更新対象の注文
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function create(User $user)
+    public function updateStatus(Owner $owner, Order $order)
     {
-        //
-    }
+        // オーナーに店舗が無ければ操作不可
+        $shop = $owner->shop;
+        if ($shop === null) {
+            return false;
+        }
 
-    /**
-     * Determine whether the user can update the model.
-     * ユーザーが当該モデルを更新できるかどうかを判定する。
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function update(User $user, Order $order)
-    {
-        //
-    }
+        $shopId = (int) $shop->id;
 
-    /**
-     * Determine whether the user can delete the model.
-     * ユーザーが当該モデルを削除できるかどうかを判定する。
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function delete(User $user, Order $order)
-    {
-        //
-    }
+        $items = $order->orderItems()->get();
 
-    /**
-     * Determine whether the user can restore the model.
-     * ユーザーが当該モデルを復元できるかどうかを判定する。
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function restore(User $user, Order $order)
-    {
-        //
-    }
+        if ($items->isEmpty()) {
+            return false;
+        }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     * ユーザーが当該モデルを完全に削除できるかどうかを判定する。
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function forceDelete(User $user, Order $order)
-    {
-        //
+        foreach ($items as $item) {
+
+            $product = $item->product;
+
+            if ($product === null) {
+                return false;
+            }
+
+            if ((int) $product->shop_id !== $shopId) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
