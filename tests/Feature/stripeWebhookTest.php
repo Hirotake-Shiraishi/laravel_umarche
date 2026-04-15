@@ -12,7 +12,7 @@
  * - 署名ヘッダ欠落 → 400（計画フェーズ C）
  * - Webhook シークレット未設定 → 500（計画フェーズ C）
  * - 署名が不正 → 400
- * - checkout.session.completed 正常 → 在庫減算・orders 作成・メールジョブ dispatch・カート削除
+ * - checkout.session.completed 正常 → 在庫減算・orders / order_items 作成・メールジョブ dispatch・カート削除
  * - 同一セッションのペイロードを2回 → 冪等（二重在庫減算・二重メールにならない）
  * - 在庫不足 → 在庫不変（返金はテストではシークレット未設定によりスキップされうる）
  */
