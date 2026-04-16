@@ -230,10 +230,6 @@ flowchart LR
 
 テスト実行: `php artisan test` または `vendor/bin/phpunit`（**PHPUnit 9**、`composer.json` の require-dev）。**Feature 一式**は `php artisan test --testsuite=Feature`（現状 24 件）。Webhook 用のダミー値は [`phpunit.xml`](phpunit.xml) を参照。
 
-## 環境変数（決済まわり・抜粋）
-
-本番・ローカルで Stripe を使う場合は [`.env.example`](.env.example) の `STRIPE_SECRET_KEY` / `STRIPE_PUBLIC_KEY` / `STRIPE_WEBHOOK_SECRET` を設定します。ローカルでは Stripe CLI の `stripe listen --forward-to` で Webhook を受け取る想定です。
-
 ## 今後の実装の展望
 
 - **返金 / キャンセル**: Stripe の返金・キャンセル運用を UI / Webhook イベントで整備（ステータス拡張も含む）
