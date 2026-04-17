@@ -1,54 +1,58 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-lg sm:text-xl text-gray-800 leading-tight break-words">
             商品の詳細
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-8 sm:py-12">
+        <div class="max-w-7xl mx-auto min-w-0 px-3 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200">
+                <div class="p-4 sm:p-6 bg-white border-b border-gray-200 min-w-0">
                     <!-- Validation Errors -->
                     <x-auth-validation-errors class="mb-4" :errors="$errors" />
-                    <div class="md:flex justify-around">
-                        <div class="md:w-1/2">
+                    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-8 min-w-0">
+                        <div class="w-full lg:w-1/2 shrink-0 min-w-0">
                             {{-- <x-thumbnail filename="{{ $product->imageFirst->filename ?? '' }}" type="products" /> --}}
                             <!-- Slider main container -->
-                            <div class="swiper-container">
+                            <div class="swiper-container w-full max-w-full min-w-0">
                                 <!-- Additional required wrapper -->
                                 <div class="swiper-wrapper">
                                     <!-- Slides -->
                                     <div class="swiper-slide">
                                         @if ($product->imageFirst->filename !== null)
-                                            <img
-                                                src="{{ asset('storage/products/' . $product->imageFirst->filename) }}">
+                                            <img class="w-full max-h-80 sm:max-h-96 object-contain mx-auto bg-gray-50"
+                                                src="{{ asset('storage/products/' . $product->imageFirst->filename) }}"
+                                                alt="">
                                         @else
-                                            <img src="">
+                                            <div class="w-full h-48 sm:h-64 max-w-md bg-gray-100 rounded-md mx-auto" aria-hidden="true"></div>
                                         @endif
                                     </div>
                                     <div class="swiper-slide">
                                         @if ($product->imageSecond->filename !== null)
-                                            <img
-                                                src="{{ asset('storage/products/' . $product->imageSecond->filename) }}">
+                                            <img class="w-full max-h-80 sm:max-h-96 object-contain mx-auto bg-gray-50"
+                                                src="{{ asset('storage/products/' . $product->imageSecond->filename) }}"
+                                                alt="">
                                         @else
-                                            <img src="">
+                                            <div class="w-full h-48 sm:h-64 max-w-md bg-gray-100 rounded-md mx-auto" aria-hidden="true"></div>
                                         @endif
                                     </div>
                                     <div class="swiper-slide">
                                         @if ($product->imageThird->filename !== null)
-                                            <img
-                                                src="{{ asset('storage/products/' . $product->imageThird->filename) }}">
+                                            <img class="w-full max-h-80 sm:max-h-96 object-contain mx-auto bg-gray-50"
+                                                src="{{ asset('storage/products/' . $product->imageThird->filename) }}"
+                                                alt="">
                                         @else
-                                            <img src="">
+                                            <div class="w-full h-48 sm:h-64 max-w-md bg-gray-100 rounded-md mx-auto" aria-hidden="true"></div>
                                         @endif
                                     </div>
                                     <div class="swiper-slide">
                                         @if ($product->imageFourth->filename !== null)
-                                            <img
-                                                src="{{ asset('storage/products/' . $product->imageFourth->filename) }}">
+                                            <img class="w-full max-h-80 sm:max-h-96 object-contain mx-auto bg-gray-50"
+                                                src="{{ asset('storage/products/' . $product->imageFourth->filename) }}"
+                                                alt="">
                                         @else
-                                            <img src="">
+                                            <div class="w-full h-48 sm:h-64 max-w-md bg-gray-100 rounded-md mx-auto" aria-hidden="true"></div>
                                         @endif
                                     </div>
                                 </div>
@@ -63,53 +67,53 @@
                                 <div class="swiper-scrollbar"></div>
                             </div>
                         </div>
-                        <div class="md:w-1/2 ml-4">
-                            <h2 class="mb-4 text-sm title-font text-gray-500 tracking-widest">
+                        <div class="w-full lg:w-1/2 min-w-0 lg:max-w-xl">
+                            <h2 class="mb-2 sm:mb-4 text-xs sm:text-sm title-font text-gray-500 tracking-widest break-words">
                                 {{ $product->secondaryCategory->name }}</h2>
-                            <h1 class="mb-4 text-gray-900 text-3xl title-font font-medium">{{ $product->name }}</h1>
-                            <p class="mb-4 leading-relaxed">{{ $product->information }}</p>
-                            <div class="flex justify-around items-center">
-                                <div>
+                            <h1 class="mb-3 sm:mb-4 text-gray-900 text-xl sm:text-2xl md:text-3xl title-font font-medium break-words">{{ $product->name }}</h1>
+                            <p class="mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base text-gray-700 break-words">{{ $product->information }}</p>
+                            <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+                                <div class="shrink-0">
                                     <span
-                                        class="title-font font-medium text-2xl text-gray-900">{{ number_format($product->price) }}</span>
-                                    <span class="text-sm text-gray-700">円(税込)</span>
+                                        class="title-font font-medium text-xl sm:text-2xl text-gray-900">{{ number_format($product->price) }}</span>
+                                    <span class="text-xs sm:text-sm text-gray-700">円(税込)</span>
                                 </div>
 
-                                <form method="post" action="{{ route('user.cart.add') }}">
+                                <form method="post" action="{{ route('user.cart.add') }}" class="w-full min-w-0 sm:w-auto sm:max-w-xs">
                                     @csrf
-                                    <div class="flex items-center">
-                                        <span class="mr-3">数量</span>
-                                        <div class="relative">
+                                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                                        <span class="text-sm sm:text-base text-gray-700 shrink-0">数量</span>
+                                        <div class="relative min-w-0 flex-1 sm:flex-initial">
                                             <select name="quantity"
-                                                class="rounded border appearance-none border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 text-base pl-3 pr-10">
+                                                class="w-full sm:w-auto min-w-0 rounded-md border appearance-none border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 text-base pl-3 pr-10 bg-white">
                                                 @for($i = 1; $i <= $quantity; $i++)
                                                     <option value="{{ $i }}">{{ $i }}</option>
                                                 @endfor
                                             </select>
                                         </div>
                                     </div>
-                                    <button
-                                        class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">カートに入れる</button>
+                                    <button type="submit"
+                                        class="w-full sm:w-auto block sm:inline-flex justify-center text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded-md text-sm sm:text-base">カートに入れる</button>
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 </form>
 
                             </div>
                         </div>
                     </div>
-                    <div class="border-t border-gray-400 my-8"></div>
-                    <div class="mb-2 text-center">この商品を販売しているショップ</div>
-                    <div class="mb-2 text-center">{{ $product->shop->name }}</div>
-                    <div class="mb-2 text-center">
+                    <div class="border-t border-gray-300 my-6 sm:my-8"></div>
+                    <div class="mb-2 text-center text-sm sm:text-base text-gray-600">この商品を販売しているショップ</div>
+                    <div class="mb-2 text-center text-base sm:text-lg font-medium text-gray-900 break-words px-1">{{ $product->shop->name }}</div>
+                    <div class="mb-4 flex justify-center">
                         @if ($product->shop->filename !== null)
-                            <img class="mx-auto w-40 h-40 rounded-full object-cover"
-                                src="{{ asset('storage/shops/' . $product->shop->filename) }}">
+                            <img class="w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover border border-gray-100"
+                                src="{{ asset('storage/shops/' . $product->shop->filename) }}" alt="">
                         @else
-                            <img src="">
+                            <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gray-100 border border-gray-200 mx-auto" aria-hidden="true"></div>
                         @endif
                     </div>
-                    <div class="mb-2 text-center">
+                    <div class="flex justify-center px-1">
                         <button type="button" data-micromodal-trigger="modal-1" href='javascript:;'
-                            class="text-white bg-gray-400 border-0 py-2 px-6 focus:outline-none hover:bg-gray-500 rounded">ショップの詳細をみる</button>
+                            class="w-full max-w-sm sm:w-auto text-white bg-gray-400 border-0 py-2 px-6 focus:outline-none hover:bg-gray-500 rounded-md text-sm sm:text-base">ショップの詳細をみる</button>
                     </div>
                 </div>
             </div>

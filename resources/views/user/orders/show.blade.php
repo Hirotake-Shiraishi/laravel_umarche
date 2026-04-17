@@ -10,15 +10,15 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-8 sm:py-12">
+        <div class="max-w-7xl mx-auto min-w-0 px-3 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200 space-y-4">
+                <div class="p-4 sm:p-6 bg-white border-b border-gray-200 space-y-4 min-w-0">
 
-                    <div class="text-sm text-gray-600">
+                    <div class="text-xs sm:text-sm text-gray-600 break-words">
                         注文日時: {{ $order->created_at->format('Y/m/d H:i') }}
                     </div>
-                    <div>
+                    <div class="text-xs sm:text-sm break-words">
                         ステータス:
                         @if ($order->status === \Constant::ORDER_STATUS_PENDING)
                             未発送
@@ -29,33 +29,35 @@
                         @endif
                     </div>
 
-                    <table class="table-auto w-full text-left whitespace-nowrap">
+                    <div class="sm:mx-0 overflow-x-auto overscroll-x-contain [scrollbar-gutter:stable]">
+                        <table class="table-auto w-full min-w-[20rem] text-left text-xs sm:text-sm border-collapse">
                         <thead>
                             <tr>
-                                <th class="px-4 py-3 text-sm bg-gray-100">商品名</th>
-                                <th class="px-4 py-3 text-sm bg-gray-100">単価</th>
-                                <th class="px-4 py-3 text-sm bg-gray-100">数量</th>
-                                <th class="px-4 py-3 text-sm bg-gray-100">小計</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 bg-gray-100 whitespace-normal sm:whitespace-nowrap min-w-[7rem]">商品名</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 bg-gray-100 whitespace-nowrap">単価</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 bg-gray-100 whitespace-nowrap">数量</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 bg-gray-100 whitespace-nowrap">小計</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($order->orderItems as $line)
                                 <tr class="border-b border-gray-200">
-                                    <td class="px-4 py-3">{{ $line->product->name ?? '（削除された商品）' }}</td>
-                                    <td class="px-4 py-3">{{ number_format($line->price) }}円</td>
-                                    <td class="px-4 py-3">{{ $line->quantity }}</td>
-                                    <td class="px-4 py-3">{{ number_format($line->price * $line->quantity) }}円</td>
+                                    <td class="px-2 sm:px-4 py-2 sm:py-3 break-words whitespace-normal align-top">{{ $line->product->name ?? '（削除された商品）' }}</td>
+                                    <td class="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap align-top">{{ number_format($line->price) }}円</td>
+                                    <td class="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap align-top">{{ $line->quantity }}</td>
+                                    <td class="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap align-top">{{ number_format($line->price * $line->quantity) }}円</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
 
-                    <div class="text-right font-semibold">
+                    <div class="text-right font-semibold text-sm sm:text-base break-words">
                         合計: {{ number_format($order->total_price) }}円
                     </div>
 
                     <div>
-                        <a href="{{ route('user.orders.index') }}" class="text-indigo-500">← 注文一覧へ戻る</a>
+                        <a href="{{ route('user.orders.index') }}" class="text-indigo-500 text-sm sm:text-base break-words inline-block">← 注文一覧へ戻る</a>
                     </div>
 
                 </div>
