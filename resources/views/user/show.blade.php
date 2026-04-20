@@ -78,7 +78,7 @@
                                         class="title-font font-medium text-xl sm:text-2xl text-gray-900">{{ number_format($product->price) }}</span>
                                     <span class="text-xs sm:text-sm text-gray-700">円(税込)</span>
                                 </div>
-
+                                {{-- カート追加フォーム --}}
                                 <form method="post" action="{{ route('user.cart.add') }}" class="w-full min-w-0 sm:w-auto sm:max-w-xs">
                                     @csrf
                                     <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
@@ -96,11 +96,76 @@
                                         class="w-full sm:w-auto block sm:inline-flex justify-center text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded-md text-sm sm:text-base">カートに入れる</button>
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 </form>
-
                             </div>
                         </div>
                     </div>
                     <div class="border-t border-gray-300 my-6 sm:my-8"></div>
+
+                    {{-- レビュー平均評価表示 --}}
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-800">レビュー</h3>
+
+                        {{-- 平均評価（レビュー0件のときは null） --}}
+                        @php
+                            // withAvg('reviews','rating') で付与される属性（Laravel の規則）
+                            $avg = $product->reviews_avg_rating;
+
+                            // 表示用: 小数1桁（例: 4.2）
+                            $avgText = is_null($avg) ? null : number_format((float) $avg, 1);
+
+                            // 星表示は「四捨五入して整数にする」ルールで実装する
+                            $avgRounded = is_null($avg) ? 0 : (int) round((float) $avg);
+                        @endphp
+
+                        <div class="flex items-center gap-3">
+                            <div class="text-yellow-500 text-lg">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    {{ $i <= $avgRounded ? '★' : '☆' }}
+                                @endfor
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                @if (is_null($avgText))
+                                    まだレビューがありません
+                                @else
+                                    平均 {{ $avgText }} / 5（{{ $product->reviews->count() }}件）
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- レビュー一覧 --}}
+                    <div class="space-y-3">
+                        @forelse ($product->reviews as $review)
+                            <div class="border rounded-md p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-sm text-gray-700 font-semibold">
+                                        {{ $review->user->name ?? '（退会ユーザー）' }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ optional($review->created_at)->format('Y/m/d') }}
+                                    </div>
+                                </div>
+
+                                <div class="mt-1 text-yellow-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        {{ $i <= (int) $review->rating ? '★' : '☆' }}
+                                    @endfor
+                                </div>
+
+                                @if (!is_null($review->comment) && $review->comment !== '')
+                                    <div class="mt-2 text-sm text-gray-700 whitespace-pre-wrap">
+                                        {{ $review->comment }}
+                                    </div>
+                                @endif
+                            </div>
+                        @empty
+                            <div class="text-sm text-gray-600">
+                                まだレビューがありません。
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ショップ情報 --}}
                     <div class="mb-2 text-center text-sm sm:text-base text-gray-600">この商品を販売しているショップ</div>
                     <div class="mb-2 text-center text-base sm:text-lg font-medium text-gray-900 break-words px-1">{{ $product->shop->name }}</div>
                     <div class="mb-4 flex justify-center">

@@ -4,13 +4,12 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Product;
-use Illuminate\Support\Facades\DB;
 use App\Models\Stock;
 use App\Models\PrimaryCategory;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\TestMail;
-use App\Jobs\SendThanksMail;
+use App\Models\User;
+use App\Models\Review;
 
 class ItemController extends Controller
 {
@@ -25,12 +24,21 @@ class ItemController extends Controller
 
             if (!is_null($id)) {
 
-                // 表示可能な商品（在庫が1以上などの条件を満たす）の中で、指定された商品IDが存在するかどうか
-                $itemId = Product::availableItems()->where('products.id', $id)->exists();
+                // 表示可能な商品（在庫が1以上などの条件を満たす）の中で、指定の商品IDが存在するかどうか
+                $isAvailable = Product::availableItems()
+                    ->where('products.id', $id)
+                    ->exists();
 
-                // 指定された商品IDが存在しない場合は、404画面を表示
-                if (!$itemId) {
-                    abort(404);
+                $productId = (int) $id;
+
+                if(!$isAvailable) {
+                    /** @var User|null $user ログイン中の一般ユーザー（users ガード） */
+                    $user = Auth::guard('users')->user();
+                    $hasPurchased = $user ? $user->hasPurchasedProduct($productId) : false;
+
+                    if(!$hasPurchased) {
+                        abort(404);
+                    }
                 }
             }
             return $next($request);
@@ -64,7 +72,48 @@ class ItemController extends Controller
 
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        /**
+         * 商品詳細で必要な情報
+         * - 商品情報（画像/カテゴリ/店舗など）
+         * - レビュー一覧（投稿者名も表示するので user を eager load）
+         * - 平均評価（scopeWithAvgRating で SQL 側で計算）
+         *
+         * 【N+1対策】
+         * reviews.user をまとめて読み込むことで、レビュー件数分の追加SQLを避ける。
+         */
+        $productId = (int) $id;
+
+        $product = Product::query()
+            ->withAvgRating()
+            ->with([
+                'secondaryCategory',
+                'shop',
+                'imageFirst',
+                'imageSecond',
+                'imageThird',
+                'imageFourth',
+                'reviews' => function ($query) {
+                    $query->latest();
+                },
+                'reviews.user',
+            ])
+            ->findOrFail($productId);
+
+        // 「購入者のみレビュー可能」判定と、すでに投稿済みかどうか
+        /** @var User|null $user ログイン中の一般ユーザー（users ガード） */
+        $user = Auth::guard('users')->user();
+        $hasPurchased = $user ? $user->hasPurchasedProduct($productId) : false;
+        $userReview = null;
+
+        if ($user) {
+            $userReview = Review::query()
+                ->where('product_id', $productId)
+                ->where('user_id', (int) $user->id)
+                ->first();
+        }
+
+        // 「レビュー可能」判定：「購入済み」かつ「まだレビューしてない」
+        $canReview = $hasPurchased && $userReview === null;
 
         $quantity = Stock::where('product_id', $product->id)
             ->sum('quantity');
@@ -74,6 +123,6 @@ class ItemController extends Controller
             $quantity = 9;
         }
 
-        return view('user.show', compact('product', 'quantity'));
+        return view('user.show', compact('product', 'hasPurchased', 'userReview', 'canReview', 'quantity'));
     }
 }
