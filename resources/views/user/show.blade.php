@@ -165,6 +165,64 @@
                         @endforelse
                     </div>
 
+                    {{-- レビュー投稿フォーム（購入済み & 未投稿のときだけ表示） --}}
+                    @if ($canReview)
+                        <div class="border rounded-md p-4 bg-gray-50">
+                            <h4 class="font-semibold text-gray-800 mb-3">レビューを投稿する（購入者限定）</h4>
+
+                            {{-- ReviewController::store で withErrors(['review' => ...]) を返す場合がある --}}
+                            @if ($errors->has('review'))
+                                <div class="mb-3 text-sm text-red-600">
+                                    {{ $errors->first('review') }}
+                                </div>
+                            @endif
+
+                            <form method="post" action="{{ route('user.items.reviews.store', ['item' => $product->id]) }}">
+                                @csrf
+
+                                <div class="mb-3">
+                                    <label class="block text-sm text-gray-700 mb-1">評価（1〜5）</label>
+                                    <select name="rating"
+                                        class="w-full rounded border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                                        @for ($i = 5; $i >= 1; $i--)
+                                            <option value="{{ $i }}" @if ((int) old('rating', 5) === $i) selected @endif>
+                                                {{ $i }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                    @error('rating')
+                                        <div class="mt-1 text-sm text-red-600">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="block text-sm text-gray-700 mb-1">コメント（任意）</label>
+                                    <textarea name="comment" rows="4"
+                                        class="w-full rounded border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
+                                        placeholder="例）梱包が丁寧でした。味も満足です。">{{ old('comment') }}</textarea>
+                                    @error('comment')
+                                        <div class="mt-1 text-sm text-red-600">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <button
+                                    class="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+                                    投稿する
+                                </button>
+                            </form>
+                        </div>
+                    @elseif ($hasPurchased && $userReview)
+                        {{-- 購入済みだが投稿済みの場合 --}}
+                        <div class="text-sm text-gray-600">
+                            この商品へのレビューは投稿済みです（1回のみ投稿可能）。
+                        </div>
+                    @elseif (!$hasPurchased)
+                        {{-- 未購入の場合 --}}
+                        <div class="text-sm text-gray-600">
+                            レビューの投稿は購入済みの方のみ可能です。
+                        </div>
+                    @endif
+
                     {{-- ショップ情報 --}}
                     <div class="mb-2 text-center text-sm sm:text-base text-gray-600">この商品を販売しているショップ</div>
                     <div class="mb-2 text-center text-base sm:text-lg font-medium text-gray-900 break-words px-1">{{ $product->shop->name }}</div>
