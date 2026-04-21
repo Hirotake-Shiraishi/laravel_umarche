@@ -12,6 +12,7 @@ use App\Http\Controllers\Owner\ShopController;
 use App\Http\Controllers\Owner\ImageController;
 use App\Http\Controllers\Owner\ProductController;
 use App\Http\Controllers\Owner\OrderController;
+use App\Http\Controllers\Owner\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -51,16 +52,23 @@ Route::resource('images', ImageController::class)
     ->middleware('auth:owners')
     ->except(['show']);
 
-/**
- * orders 受注管理
- *
- * 専用エンドポイントで用途を明確化 :
- * - PATCH /orders/{order} だと「注文の"何か"を部分更新」と読めるが、
- *   PATCH /orders/{order}/status とすると「注文の”ステータス”を部分更新」と一目で読める。
- */
 Route::middleware('auth:owners')->group(function () {
+    /**
+     * orders 受注管理
+     *
+     * 専用エンドポイントで用途を明確化 :
+     * - PATCH /orders/{order} だと「注文の"何か"を部分更新」と読めるが、
+     *   PATCH /orders/{order}/status とすると「注文の”ステータス”を部分更新」と一目で読める。
+     */
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
+    /**
+     * レビュー一覧（課題5）
+     *
+     * - オーナーは自店舗商品のレビューだけ閲覧可能
+     */
+    Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
 });
 
 // Route::get('/register', [RegisteredUserController::class, 'create'])

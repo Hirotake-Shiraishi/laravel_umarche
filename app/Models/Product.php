@@ -74,18 +74,50 @@ class Product extends Model
     }
 
     /**
-     * この商品が注文明細に含まれた履歴（1対多・任意）
+     * この商品が含まれた注文明細（1対多・任意）
      *
-     * オーナー画面や詳細画面で「どの注文に入っていたか」を辿るときに使用する。
+     * オーナー画面や詳細画面で「どの注文に入っていたか」を辿るために使用。
      */
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * この商品に対するレビュー一覧（1対多・任意）
+     *
+     * 商品詳細画面で「レビュー一覧」を表示するために使用。
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
 
     /**
-     * ローカルスコープ：表示可能（在庫が1以上）の商品を取得するスコープ
+     * 平均評価（rating の平均）を付与するスコープ
+     *
+     * 【このスコープが必要な理由】
+     * - PHP 側で reviews を読み込んでから平均を計算すると、
+     *   データ量・計算コストが増えやすい（N+1 の原因にもなりやすい）。
+     * - withAvg を使うことで SQL 側で平均を計算してから、取得するので効率的。
+     *
+     * 【withAvg】
+     * - withAvg('reviews', 'rating') を使うと、
+     *   Laravel は平均値を SQL 側で計算し、その結果をモデルのプロパティとして追加する。
+     *
+     * 【付与される属性名】
+     * - Laravel の規則により「{リレーション名}_avg_{カラム名}」となる。
+     *   → 今回は reviews_avg_rating
+     */
+    public function scopeWithAvgRating($query)
+    {
+        return $query->withAvg('reviews', 'rating');
+    }
+
+
+    /**
+     * 表示可能（在庫が1以上）の商品を取得するスコープ
      */
     public function scopeAvailableItems($query)
     {
