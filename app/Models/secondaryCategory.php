@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\PrimaryCategory;
 
-class secondaryCategory extends Model
+class SecondaryCategory extends Model
 {
     use HasFactory;
 

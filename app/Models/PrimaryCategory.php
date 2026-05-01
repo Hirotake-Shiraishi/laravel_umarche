@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\secondaryCategory;
+use App\Models\SecondaryCategory;
 
 class PrimaryCategory extends Model
 {
@@ -13,6 +13,6 @@ class PrimaryCategory extends Model
     public function secondary()
     {
         // 一対多のリレーション
-        return $this->hasMany(secondaryCategory::class);
+        return $this->hasMany(SecondaryCategory::class);
     }
 }
